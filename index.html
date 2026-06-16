@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CIELO SHOP — Street Luxury Jewelry, Apparel & Art</title>
+  <meta name="description" content="CIELOの公式ショップ。モアサナイトジュエリー、ストリートラグジュアリーアパレル、オリジナルアート。">
+  <meta property="og:title" content="CIELO SHOP">
+  <meta property="og:description" content="Street Luxury. Jewelry. Apparel. Art.">
+  <meta property="og:image" content="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495771/e6azpivui9xg68hr1ria.png">
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="site-header">
+  <a href="index.html" class="header-logo" aria-label="CIELO">
+    <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO">
+  </a>
+  <nav class="header-nav" aria-label="Main navigation">
+    <a href="index.html" class="active">Shop</a>
+    <a href="index.html?cat=jewelry">Jewelry</a>
+    <a href="index.html?cat=apparel">Apparel</a>
+    <a href="index.html?cat=art">Art</a>
+  </nav>
+  <div class="header-actions">
+    <button class="header-hamburger" id="menuOpen" aria-label="メニューを開く">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu" role="dialog" aria-label="ナビゲーション">
+  <button class="mobile-menu-close" id="menuClose" aria-label="閉じる">✕</button>
+  <nav>
+    <a href="index.html" id="mobileMenuClose">Shop All</a>
+    <a href="index.html?cat=jewelry">Jewelry</a>
+    <a href="index.html?cat=apparel">Apparel</a>
+    <a href="index.html?cat=art">Art</a>
+  </nav>
+</div>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" aria-label="ヒーロー">
+  <div class="hero-fallback"></div>
+  <div class="hero-slides" id="heroSlides" aria-hidden="true"></div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">Street Luxury</p>
+    <h1 class="hero-title" id="heroTitle">The light<br>you deserve.</h1>
+    <p class="hero-title-ja" id="heroTitleJa">あなたに相応しい輝き。</p>
+    <a href="#products" class="hero-cta">
+      Shop Now
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="8" x2="13" y2="8"/><polyline points="9,4 13,8 9,12"/>
+      </svg>
+    </a>
+  </div>
+
+  <div class="hero-dots" id="heroDots" aria-hidden="true"></div>
+</section>
+
+<!-- ===================== CATEGORY NAV ===================== -->
+<nav class="category-nav" aria-label="カテゴリ">
+  <div class="category-nav-inner">
+    <button class="cat-btn active" data-cat="all">All</button>
+    <button class="cat-btn" data-cat="jewelry">Jewelry</button>
+    <button class="cat-btn" data-cat="apparel">Apparel</button>
+    <button class="cat-btn" data-cat="art">Art</button>
+  </div>
+</nav>
+
+<!-- ===================== SEARCH ===================== -->
+<div class="search-bar">
+  <div class="search-input-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input
+      type="search"
+      class="search-input"
+      id="searchInput"
+      placeholder="商品を検索..."
+      aria-label="商品検索"
+    >
+  </div>
+</div>
+
+<!-- ===================== TAG FILTER ===================== -->
+<div class="tag-filter">
+  <div class="tag-filter-inner" id="tagFilter">
+    <button class="tag-btn active" data-tag="all">All</button>
+    <!-- Tags populated by JS -->
+  </div>
+</div>
+
+<!-- ===================== PRODUCT GRID ===================== -->
+<section class="products-section" id="products">
+  <p class="products-count" id="productsCount"></p>
+  <div class="product-grid" id="productGrid">
+    <!-- Skeleton loading -->
+    <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
+    <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
+    <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
+    <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO">
+      </div>
+      <p class="footer-tagline">Street Luxury.<br>Jewelry. Apparel. Art.</p>
+    </div>
+    <div class="footer-nav-group">
+      <h4>Shop</h4>
+      <ul>
+        <li><a href="index.html?cat=jewelry">Jewelry</a></li>
+        <li><a href="index.html?cat=apparel">Apparel</a></li>
+        <li><a href="index.html?cat=art">Art</a></li>
+      </ul>
+    </div>
+    <div class="footer-nav-group">
+      <h4>Brand</h4>
+      <ul>
+        <li><a href="#">About CIELO</a></li>
+        <li><a href="#">Moissanite</a></li>
+        <li><a href="#">ASIA VISION LINK</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 CIELO / ASIA VISION LINK. All rights reserved.</p>
+    <p>Powered by ASIA VISION LINK OS</p>
+  </div>
+</footer>
+
+<!-- ===================== SCRIPTS ===================== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase.js"></script>
+<script src="hero-config.js"></script>
+<script src="shop.js"></script>
+</body>
+</html>

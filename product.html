@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CIELO</title>
+  <meta name="description" content="">
+  <meta property="og:title" content="CIELO">
+  <meta property="og:description" content="">
+  <meta property="og:image" content="">
+  <meta property="og:type" content="product">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495771/e6azpivui9xg68hr1ria.png">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <a href="index.html" class="header-logo" aria-label="CIELO">
+    <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO">
+  </a>
+  <nav class="header-nav" aria-label="Main navigation">
+    <a href="index.html">Shop</a>
+    <a href="index.html?cat=jewelry">Jewelry</a>
+    <a href="index.html?cat=apparel">Apparel</a>
+    <a href="index.html?cat=art">Art</a>
+  </nav>
+  <div class="header-actions">
+    <button class="header-hamburger" id="menuOpen" aria-label="メニューを開く">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<div class="mobile-menu" id="mobileMenu" role="dialog">
+  <button class="mobile-menu-close" id="menuClose">✕</button>
+  <nav>
+    <a href="index.html">Shop All</a>
+    <a href="index.html?cat=jewelry">Jewelry</a>
+    <a href="index.html?cat=apparel">Apparel</a>
+    <a href="index.html?cat=art">Art</a>
+  </nav>
+</div>
+
+<!-- PRODUCT PAGE -->
+<main class="pt-header">
+  <div id="productLoading" style="padding:80px 20px;text-align:center;color:var(--white-dim);">
+    <p style="font-size:13px;letter-spacing:0.1em;">LOADING...</p>
+  </div>
+
+  <div id="productError" style="display:none;padding:80px 20px;text-align:center;">
+    <p style="font-size:18px;font-weight:700;margin-bottom:8px;">商品が見つかりません</p>
+    <p style="color:var(--white-dim);margin-bottom:24px;font-size:14px;">URLをご確認ください。</p>
+    <a href="index.html" style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--sapphire);">← SHOP に戻る</a>
+  </div>
+
+  <div id="productContent" class="product-page-inner" style="display:none;">
+
+    <!-- LEFT: Gallery -->
+    <div class="product-gallery-col">
+      <!-- Mobile Swipe -->
+      <div class="gallery-mobile">
+        <div class="gallery-track" id="galleryTrack"></div>
+        <div class="gallery-arrows">
+          <button class="gallery-arrow" id="galleryPrev" aria-label="前の画像">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,18 9,12 15,6"/></svg>
+          </button>
+          <button class="gallery-arrow" id="galleryNext" aria-label="次の画像">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,6 15,12 9,18"/></svg>
+          </button>
+        </div>
+        <div class="gallery-dots-mobile" id="galleryDots"></div>
+      </div>
+
+      <!-- PC: Main + Thumbnails -->
+      <div class="gallery-pc">
+        <div class="gallery-pc-main">
+          <img id="galleryMainImg" src="" alt="">
+        </div>
+        <div class="gallery-thumbs" id="galleryThumbs"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Product Info -->
+    <div class="product-detail-wrap">
+
+      <nav class="product-breadcrumb" aria-label="パンくず">
+        <a href="index.html">Shop</a>
+        <span>›</span>
+        <a id="breadcrumbCat" href="#">—</a>
+        <span>›</span>
+        <span id="breadcrumbName">—</span>
+      </nav>
+
+      <h1 class="product-name" id="productName">—</h1>
+
+      <p class="product-price" id="productPrice">
+        —<span class="product-price-note">（税込）</span>
+      </p>
+
+      <div class="product-stock" id="productStock"></div>
+
+      <div class="product-meta" id="productMeta"></div>
+
+      <hr class="section-divider">
+
+      <div id="storySection" style="display:none">
+        <p class="product-story" id="productStory"></p>
+        <hr class="section-divider">
+      </div>
+
+      <div id="descSection" style="display:none">
+        <p class="product-section-title">Description</p>
+        <p class="product-desc" id="productDesc"></p>
+        <hr class="section-divider">
+      </div>
+
+      <div id="specsSection" style="display:none">
+        <p class="product-section-title">Specs</p>
+        <table class="spec-table" id="specTable"></table>
+        <hr class="section-divider">
+      </div>
+
+      <div id="variantsSection"></div>
+
+      <div class="buy-btn-wrap">
+        <button class="buy-btn buy-btn-coming-soon" disabled>Coming Soon</button>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO">
+      </div>
+      <p class="footer-tagline">Street Luxury.<br>Jewelry. Apparel. Art.</p>
+    </div>
+    <div class="footer-nav-group">
+      <h4>Shop</h4>
+      <ul>
+        <li><a href="index.html?cat=jewelry">Jewelry</a></li>
+        <li><a href="index.html?cat=apparel">Apparel</a></li>
+        <li><a href="index.html?cat=art">Art</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 CIELO / ASIA VISION LINK. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase.js"></script>
+<script>
+const PLACEHOLDER_IMG = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">' +
+  '<rect fill="#1A1A1A" width="400" height="400"/>' +
+  '<text x="200" y="196" text-anchor="middle" dominant-baseline="middle" ' +
+  'fill="#2A2A2A" font-size="14" font-family="sans-serif" letter-spacing="8">CIELO</text>' +
+  '</svg>'
+);
+
+let galleryIndex = 0;
+
+function safeImgSrc(url) {
+  return url || PLACEHOLDER_IMG;
+}
+
+function initMobileGallery(images) {
+  const track = document.getElementById('galleryTrack');
+  const dots  = document.getElementById('galleryDots');
+  const prev  = document.getElementById('galleryPrev');
+  const next  = document.getElementById('galleryNext');
+
+  images.forEach((img, i) => {
+    const slide = document.createElement('div');
+    slide.className = 'gallery-slide';
+    slide.innerHTML = `<img
+      src="${safeImgSrc(img.image_url)}"
+      alt="${img.alt_text || ''}"
+      loading="${i === 0 ? 'eager' : 'lazy'}"
+      onerror="this.onerror=null;this.src=PLACEHOLDER_IMG"
+    >`;
+    track.appendChild(slide);
+
+    const dot = document.createElement('button');
+    dot.className = 'gallery-dot-m' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', `画像 ${i + 1}`);
+    dot.addEventListener('click', () => goTo(i));
+    dots.appendChild(dot);
+  });
+
+  function goTo(idx) {
+    galleryIndex = (idx + images.length) % images.length;
+    track.style.transform = `translateX(-${galleryIndex * 100}%)`;
+    dots.querySelectorAll('.gallery-dot-m').forEach((d, i) => d.classList.toggle('active', i === galleryIndex));
+  }
+
+  prev.addEventListener('click', () => goTo(galleryIndex - 1));
+  next.addEventListener('click', () => goTo(galleryIndex + 1));
+
+  let startX = 0;
+  const wrap = track.parentElement;
+  wrap.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+  wrap.addEventListener('touchend',   e => {
+    const d = e.changedTouches[0].clientX - startX;
+    if (Math.abs(d) > 40) goTo(d < 0 ? galleryIndex + 1 : galleryIndex - 1);
+  }, { passive: true });
+}
+
+function initPcGallery(images) {
+  const mainImg = document.getElementById('galleryMainImg');
+  const thumbs  = document.getElementById('galleryThumbs');
+  if (!images.length) {
+    mainImg.src = PLACEHOLDER_IMG;
+    return;
+  }
+  mainImg.src = safeImgSrc(images[0].image_url);
+  mainImg.alt = images[0].alt_text || '';
+  mainImg.onerror = function() { this.onerror = null; this.src = PLACEHOLDER_IMG; };
+
+  images.forEach((img, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'gallery-thumb' + (i === 0 ? ' active' : '');
+    btn.innerHTML = `<img
+      src="${safeImgSrc(img.image_url)}"
+      alt="${img.alt_text || ''}"
+      loading="lazy"
+      onerror="this.onerror=null;this.src=PLACEHOLDER_IMG"
+    >`;
+    btn.addEventListener('click', () => {
+      mainImg.src = safeImgSrc(img.image_url);
+      mainImg.alt = img.alt_text || '';
+      thumbs.querySelectorAll('.gallery-thumb').forEach((t, j) => t.classList.toggle('active', j === i));
+    });
+    thumbs.appendChild(btn);
+  });
+}
+
+function renderStock(count) {
+  const el = document.getElementById('productStock');
+  if (count === 0) {
+    el.className = 'product-stock stock-out';
+    el.innerHTML = '<span class="stock-dot"></span> Sold Out';
+  } else if (count <= 5) {
+    el.className = 'product-stock stock-low';
+    el.innerHTML = `<span class="stock-dot"></span> 残り${count}点`;
+  } else {
+    el.className = 'product-stock stock-in';
+    el.innerHTML = '<span class="stock-dot"></span> In Stock';
+  }
+}
+
+function renderSpecs(product) {
+  const attrs = product.attributes || {};
+  if (!Object.keys(attrs).length) return;
+  const rows = [];
+
+  if (product.category === 'jewelry') {
+    if (attrs.material)            rows.push(['素材', attrs.material]);
+    if (attrs.stone_type)          rows.push(['ストーン', attrs.stone_type]);
+    if (attrs.stone_size_ct)       rows.push(['ストーンサイズ', `${attrs.stone_size_ct}ct`]);
+    if (attrs.stone_color)         rows.push(['ストーンカラー', attrs.stone_color]);
+    if (attrs.stone_clarity)       rows.push(['クラリティ', attrs.stone_clarity]);
+    if (attrs.moissanite_hardness) rows.push(['モース硬度', attrs.moissanite_hardness]);
+    if (attrs.moissanite_ri)       rows.push(['屈折率 (RI)', attrs.moissanite_ri]);
+    if (attrs.setting)             rows.push(['セッティング', attrs.setting]);
+  } else if (product.category === 'apparel') {
+    if (attrs.material)          rows.push(['素材', attrs.material]);
+    if (attrs.print_method)      rows.push(['プリント', attrs.print_method]);
+    if (attrs.country_of_origin) rows.push(['生産国', attrs.country_of_origin]);
+  } else if (product.category === 'art') {
+    if (attrs.medium)              rows.push(['素材・仕様', attrs.medium]);
+    if (attrs.edition)             rows.push(['エディション', attrs.edition]);
+    if (attrs.signed !== undefined) rows.push(['サイン', attrs.signed ? 'あり' : 'なし']);
+    if (attrs.framed !== undefined) rows.push(['額装', attrs.framed ? 'あり' : 'なし']);
+    if (attrs.certificate !== undefined) rows.push(['真正証明書', attrs.certificate ? 'あり' : 'なし']);
+  }
+
+  if (rows.length) {
+    document.getElementById('specTable').innerHTML = rows.map(([l, v]) =>
+      `<tr><td>${l}</td><td>${v}</td></tr>`).join('');
+    document.getElementById('specsSection').style.display = 'block';
+  }
+}
+
+function renderVariants(product, variants) {
+  const container = document.getElementById('variantsSection');
+  if (!variants.length) return;
+
+  if (product.category === 'apparel') {
+    const colors = [...new Set(variants.map(v => v.label.split(' / ')[0]?.trim()).filter(Boolean))];
+    const sizes  = [...new Set(variants.map(v => v.label.split(' / ')[1]?.trim()).filter(Boolean))];
+    let selectedColor = null;
+    let selectedSize  = null;
+
+    container.innerHTML = `
+      <div class="variant-section">
+        <p class="variant-label">Color</p>
+        <div class="variant-options" id="colorOpts">
+          ${colors.map(c => `<button class="variant-btn color-btn" data-value="${c}">${c}</button>`).join('')}
+        </div>
+      </div>
+      <div class="variant-section">
+        <p class="variant-label">Size</p>
+        <div class="variant-options" id="sizeOpts">
+          ${sizes.map(s => `<button class="variant-btn size-btn" data-value="${s}" disabled>${s}</button>`).join('')}
+        </div>
+      </div>`;
+
+    container.querySelectorAll('.color-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        selectedColor = b.dataset.value;
+        selectedSize = null;
+        container.querySelectorAll('.color-btn').forEach(x => x.classList.remove('selected'));
+        b.classList.add('selected');
+        container.querySelectorAll('.size-btn').forEach(s => {
+          const v = variants.find(vv => vv.label === `${selectedColor} / ${s.dataset.value}`);
+          s.disabled = !v || v.stock_count === 0;
+          s.classList.toggle('sold-out', !v || v.stock_count === 0);
+          s.classList.remove('selected');
+        });
+      });
+    });
+
+    container.querySelectorAll('.size-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        if (b.disabled) return;
+        selectedSize = b.dataset.value;
+        container.querySelectorAll('.size-btn').forEach(x => x.classList.remove('selected'));
+        b.classList.add('selected');
+      });
+    });
+
+  } else {
+    const byType = {};
+    variants.forEach(v => {
+      (byType[v.type] = byType[v.type] || []).push(v);
+    });
+    const labelMap = { size: 'Size', length: 'Length', frame: 'Frame' };
+    let html = '';
+
+    Object.entries(byType).forEach(([type, list]) => {
+      html += `<div class="variant-section">
+        <p class="variant-label">${labelMap[type] || type}</p>
+        <div class="variant-options">
+          ${list.sort((a,b) => a.sort_order - b.sort_order).map(v => {
+            const note = v.price_modifier > 0 ? ` <small>(+¥${v.price_modifier.toLocaleString('ja-JP')})</small>` : '';
+            return `<button class="variant-btn${v.stock_count===0?' sold-out':''}"
+              data-sku="${v.sku}" ${v.stock_count===0?'disabled':''}>
+              ${v.label_ja || v.label}${note}
+            </button>`;
+          }).join('')}
+        </div>
+      </div>`;
+    });
+    container.innerHTML = html;
+
+    container.querySelectorAll('.variant-btn:not([disabled])').forEach(b => {
+      b.addEventListener('click', () => {
+        b.closest('.variant-options').querySelectorAll('.variant-btn').forEach(x => x.classList.remove('selected'));
+        b.classList.add('selected');
+      });
+    });
+  }
+
+  container.insertAdjacentHTML('beforeend', '<hr class="section-divider">');
+}
+
+function renderProduct(product) {
+  const title = product.seo_title || `${product.name} | CIELO`;
+  const desc  = product.seo_description || product.description_ja || '';
+  document.title = title;
+  document.querySelector('meta[name="description"]').content = desc;
+  document.querySelector('meta[property="og:title"]').content = title;
+  document.querySelector('meta[property="og:description"]').content = desc;
+  if (product.og_image_url) document.querySelector('meta[property="og:image"]').content = product.og_image_url;
+
+  const catLabel = { jewelry:'Jewelry', apparel:'Apparel', art:'Art' };
+  const bc = document.getElementById('breadcrumbCat');
+  bc.textContent = catLabel[product.category] || product.category;
+  bc.href = `index.html?cat=${product.category}`;
+  document.getElementById('breadcrumbName').textContent = product.name;
+
+  document.getElementById('productName').textContent = product.name;
+  document.getElementById('productPrice').innerHTML =
+    `¥${product.price.toLocaleString('ja-JP')}<span class="product-price-note">（税込）</span>`;
+
+  renderStock(product.stock_count);
+
+  const tags = (product.product_tags || []).map(pt => pt.tags).filter(Boolean);
+  let metaHtml = `<span class="product-cat-badge">${catLabel[product.category] || product.category}</span>`;
+  tags.forEach(t => { metaHtml += `<span class="product-tag">${t.name_ja || t.name}</span>`; });
+  document.getElementById('productMeta').innerHTML = metaHtml;
+
+  const story = product.story_ja || product.story;
+  if (story) {
+    document.getElementById('productStory').textContent = story;
+    document.getElementById('storySection').style.display = 'block';
+  }
+
+  const descText = product.description_ja || product.description;
+  if (descText) {
+    document.getElementById('productDesc').textContent = descText;
+    document.getElementById('descSection').style.display = 'block';
+  }
+
+  renderSpecs(product);
+
+  const images = (product.product_images || []).sort((a,b) => a.sort_order - b.sort_order);
+  initMobileGallery(images);
+  initPcGallery(images);
+
+  const variants = (product.product_variants || []).sort((a,b) => a.sort_order - b.sort_order);
+  renderVariants(product, variants);
+}
+
+document.getElementById('menuOpen')?.addEventListener('click', () => {
+  document.getElementById('mobileMenu').classList.add('open');
+});
+document.getElementById('menuClose')?.addEventListener('click', () => {
+  document.getElementById('mobileMenu').classList.remove('open');
+});
+
+(async function loadProduct() {
+  const slug = new URLSearchParams(window.location.search).get('slug');
+  if (!slug) {
+    document.getElementById('productLoading').style.display = 'none';
+    document.getElementById('productError').style.display = 'block';
+    return;
+  }
+
+  const { data: product, error } = await db
+    .from('products')
+    .select(`
+      *,
+      product_images ( id, image_url, alt_text, sort_order, is_thumbnail ),
+      product_variants ( id, sku, type, label, label_ja, stock_count, price_modifier, sort_order ),
+      product_tags ( tags ( id, name, name_ja ) )
+    `)
+    .eq('slug', slug)
+    .eq('status', 'active')
+    .single();
+
+  document.getElementById('productLoading').style.display = 'none';
+
+  if (error) {
+    console.error('[CIELO] product 取得エラー:', error.message, '| code:', error.code, '| slug:', slug);
+    document.getElementById('productError').style.display = 'block';
+    return;
+  }
+
+  if (!product) {
+    console.warn('[CIELO] slug に一致する商品なし:', slug);
+    document.getElementById('productError').style.display = 'block';
+    return;
+  }
+
+  const imgs     = product.product_images?.length || 0;
+  const variants = product.product_variants?.length || 0;
+  const tags     = product.product_tags?.length || 0;
+  console.log(`[CIELO] Product loaded: ${product.name} | images:${imgs} variants:${variants} tags:${tags}`);
+
+  document.getElementById('productContent').style.display = '';
+  renderProduct(product);
+})();
+</script>
+</body>
+</html>
