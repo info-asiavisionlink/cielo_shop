@@ -10,6 +10,7 @@
 -- CLEANUP（再実行時のリセット）
 -- ============================================================
 DROP TABLE IF EXISTS product_tags     CASCADE;
+DROP TABLE IF EXISTS product_specs    CASCADE;
 DROP TABLE IF EXISTS tags             CASCADE;
 DROP TABLE IF EXISTS product_variants CASCADE;
 DROP TABLE IF EXISTS product_images   CASCADE;
@@ -54,25 +55,17 @@ CREATE TABLE products (
   seo_title       TEXT,                                        -- <title> タグ
   seo_description TEXT,                                        -- <meta name="description">
   og_image_url    TEXT,                                        -- OGP / og:image URL
+  product_type    TEXT,                                        -- Ring/Necklace/Bracelet/Pierce/Pendant/Tshirt/Hoodie/Art
   created_at      TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ       NOT NULL DEFAULT NOW()
 );
 
--- attributes JSONB スキーマ定義（カテゴリ別）
--- Jewelry:
---   { material, metal_color, stone_type, stone_size_ct,
---     stone_color, stone_clarity, moissanite_hardness, moissanite_ri, setting }
---
--- Apparel:
---   { material, print_method, country_of_origin }
---
--- Art:
---   { medium, edition, edition_total, signed, framed, certificate }
-
-COMMENT ON TABLE products IS 'CIELO 商品マスタ。カテゴリ固有データは attributes (JSONB) に格納。';
+-- attributes JSONB: レガシー互換用（新規商品は product_specs テーブルを使用）
+COMMENT ON TABLE products IS 'CIELO 商品マスタ。スペックは product_specs テーブルで管理。';
 COMMENT ON COLUMN products.slug IS 'URLスラッグ。/product?slug={slug} で商品詳細ページを生成。';
 COMMENT ON COLUMN products.price IS 'JPY 税込価格（整数）。';
-COMMENT ON COLUMN products.attributes IS 'カテゴリ固有データ。Jewelry/Apparel/Art で異なるスキーマ。';
+COMMENT ON COLUMN products.product_type IS 'Ring/Necklace/Bracelet/Pierce/Pendant/Tshirt/Hoodie/Art 等。';
+COMMENT ON COLUMN products.attributes IS 'レガシー互換。新規商品は product_specs を使用。';
 
 -- ============================================================
 -- product_images — 商品画像（無制限管理）
@@ -119,6 +112,26 @@ COMMENT ON COLUMN product_variants.type IS 'size | color_size | length | frame';
 COMMENT ON COLUMN product_variants.price_modifier IS 'バリアント追加料金。基本価格 (products.price) に加算。';
 
 -- ============================================================
+-- product_specs — 商品スペック（カテゴリ固有・拡張可能）
+-- ============================================================
+-- 固定カラムを増やさずに任意のスペックを追加できる設計。
+-- spec_type: カテゴリ名（jewelry/apparel/art）
+-- spec_key:  スペック項目名（material / stone_type / carat 等）
+-- spec_value: 値（すべてTEXT、boolean は 'あり'/'なし' で格納）
+-- ============================================================
+CREATE TABLE product_specs (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id  UUID        NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  spec_type   TEXT        NOT NULL,
+  spec_key    TEXT        NOT NULL,
+  spec_value  TEXT        NOT NULL,
+  sort_order  INTEGER     NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE product_specs IS '商品スペック。spec_key/spec_value で任意の仕様を格納。DB変更なしに項目追加可能。';
+
+-- ============================================================
 -- tags — タグマスタ
 -- ============================================================
 CREATE TABLE tags (
@@ -151,6 +164,8 @@ CREATE INDEX idx_product_images_sort    ON product_images(product_id, sort_order
 CREATE INDEX idx_product_images_thumb   ON product_images(product_id) WHERE is_thumbnail = true;
 CREATE INDEX idx_product_variants_prod  ON product_variants(product_id);
 CREATE INDEX idx_product_variants_type  ON product_variants(product_id, type);
+CREATE INDEX idx_product_specs_product  ON product_specs(product_id);
+CREATE INDEX idx_product_specs_type     ON product_specs(product_id, spec_type);
 CREATE INDEX idx_product_tags_product   ON product_tags(product_id);
 CREATE INDEX idx_product_tags_tag       ON product_tags(tag_id);
 
@@ -176,6 +191,7 @@ CREATE TRIGGER products_set_updated_at
 ALTER TABLE products         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_images   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_variants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_specs    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tags             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_tags     ENABLE ROW LEVEL SECURITY;
 
@@ -202,6 +218,17 @@ CREATE POLICY "public_select_product_variants"
     EXISTS (
       SELECT 1 FROM products p
       WHERE p.id = product_variants.product_id
+        AND p.status = 'active'
+    )
+  );
+
+-- active 商品のスペックのみ公開
+CREATE POLICY "public_select_product_specs"
+  ON product_specs FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM products p
+      WHERE p.id = product_specs.product_id
         AND p.status = 'active'
     )
   );

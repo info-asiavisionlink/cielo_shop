@@ -251,7 +251,79 @@ function renderStock(count) {
   }
 }
 
+const SPEC_LABEL_MAP = {
+  // Jewelry
+  material:            '素材',
+  metal_color:         'メタルカラー',
+  stone_type:          'ストーン',
+  stone_size_ct:       'ストーンサイズ',
+  carat:               'カラット',
+  stone_color:         'ストーンカラー',
+  stone_clarity:       'クラリティ',
+  setting:             'セッティング',
+  moissanite_hardness: 'モース硬度',
+  moissanite_ri:       '屈折率 (RI)',
+  chain_length:        'チェーン長さ',
+  ring_size:           'リングサイズ',
+  // Apparel
+  fit:                 'フィット',
+  print_method:        'プリント',
+  country_of_origin:   '生産国',
+  // Art
+  medium:              '素材・仕様',
+  edition:             'エディション',
+  edition_total:       '限定数',
+  signed:              'サイン',
+  framed:              '額装',
+  certificate:         '真正証明書',
+  size:                'サイズ',
+  art_size:            'サイズ',
+  serial_number:       'シリアル',
+};
+
 function renderSpecs(product) {
+  const specTable  = document.getElementById('specTable');
+  const specsSection = document.getElementById('specsSection');
+
+  /* ── product_specs テーブルから動的生成（新方式） ── */
+  const specsArr = (product.product_specs || []).sort((a, b) => a.sort_order - b.sort_order);
+  if (specsArr.length) {
+    // アパレルのサイズ表は分けて処理
+    const sizeRows = specsArr.filter(s => /^size_[smxl]+_(length|width|sleeve)$/i.test(s.spec_key));
+    const mainRows = specsArr.filter(s => !/^size_[smxl]+_(length|width|sleeve)$/i.test(s.spec_key));
+
+    let html = mainRows.map(s => {
+      const label = SPEC_LABEL_MAP[s.spec_key] || s.spec_key;
+      return `<tr><td>${label}</td><td>${s.spec_value}</td></tr>`;
+    }).join('');
+
+    if (sizeRows.length) {
+      const sizeChart = {};
+      sizeRows.forEach(s => {
+        const [, sz, dim] = s.spec_key.match(/^size_([smxl]+)_(length|width|sleeve)$/i) || [];
+        if (!sz) return;
+        const szLabel = sz.toUpperCase();
+        if (!sizeChart[szLabel]) sizeChart[szLabel] = {};
+        sizeChart[szLabel][dim] = s.spec_value;
+      });
+      const dimHeaders = ['length', 'width', 'sleeve'].filter(d => sizeRows.some(s => s.spec_key.includes(d)));
+      const dimLabels  = { length: '着丈', width: '身幅', sleeve: '袖丈' };
+      html += `<tr><td colspan="2" style="padding-top:12px;font-weight:600;letter-spacing:0.08em">SIZE CHART</td></tr>`;
+      html += `<tr style="font-size:11px;color:rgba(240,244,255,0.45)"><td></td><td>${dimHeaders.map(d => dimLabels[d]).join(' / ')}</td></tr>`;
+      Object.entries(sizeChart).forEach(([sz, dims]) => {
+        const vals = dimHeaders.map(d => dims[d] ? `${dims[d]}cm` : '—').join(' / ');
+        html += `<tr><td>${sz}</td><td>${vals}</td></tr>`;
+      });
+    }
+
+    if (html) {
+      specTable.innerHTML = html;
+      specsSection.style.display = 'block';
+    }
+    return;
+  }
+
+  /* ── レガシー: attributes JSONB からのフォールバック ── */
   const attrs = product.attributes || {};
   if (!Object.keys(attrs).length) return;
   const rows = [];
@@ -270,17 +342,16 @@ function renderSpecs(product) {
     if (attrs.print_method)      rows.push(['プリント', attrs.print_method]);
     if (attrs.country_of_origin) rows.push(['生産国', attrs.country_of_origin]);
   } else if (product.category === 'art') {
-    if (attrs.medium)              rows.push(['素材・仕様', attrs.medium]);
-    if (attrs.edition)             rows.push(['エディション', attrs.edition]);
-    if (attrs.signed !== undefined) rows.push(['サイン', attrs.signed ? 'あり' : 'なし']);
-    if (attrs.framed !== undefined) rows.push(['額装', attrs.framed ? 'あり' : 'なし']);
+    if (attrs.medium)                    rows.push(['素材・仕様', attrs.medium]);
+    if (attrs.edition)                   rows.push(['エディション', attrs.edition]);
+    if (attrs.signed !== undefined)      rows.push(['サイン', attrs.signed ? 'あり' : 'なし']);
+    if (attrs.framed !== undefined)      rows.push(['額装', attrs.framed ? 'あり' : 'なし']);
     if (attrs.certificate !== undefined) rows.push(['真正証明書', attrs.certificate ? 'あり' : 'なし']);
   }
 
   if (rows.length) {
-    document.getElementById('specTable').innerHTML = rows.map(([l, v]) =>
-      `<tr><td>${l}</td><td>${v}</td></tr>`).join('');
-    document.getElementById('specsSection').style.display = 'block';
+    specTable.innerHTML = rows.map(([l, v]) => `<tr><td>${l}</td><td>${v}</td></tr>`).join('');
+    specsSection.style.display = 'block';
   }
 }
 
@@ -337,7 +408,7 @@ function renderVariants(product, variants) {
     variants.forEach(v => {
       (byType[v.type] = byType[v.type] || []).push(v);
     });
-    const labelMap = { size: 'Size', length: 'Length', frame: 'Frame' };
+    const labelMap = { size: 'Size', length: 'Length', frame: 'Frame', ring_size: 'Ring Size', chain_length: 'Chain Length', color_size: 'Color / Size' };
     let html = '';
 
     Object.entries(byType).forEach(([type, list]) => {
@@ -442,6 +513,7 @@ _navLinks?.querySelectorAll('a').forEach(a => {
     .from('products')
     .select(`
       *,
+      product_specs ( spec_key, spec_value, sort_order ),
       product_images ( id, image_url, alt_text, sort_order, is_thumbnail ),
       product_variants ( id, sku, type, label, label_ja, stock_count, price_modifier, sort_order ),
       product_tags ( tags ( id, name, name_ja ) )

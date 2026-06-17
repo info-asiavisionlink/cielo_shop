@@ -450,3 +450,114 @@ INSERT INTO product_tags (product_id, tag_id) VALUES
   ('33333333-3333-3333-3333-333333333303','00000000-0000-0000-0000-000000000008'),
   ('33333333-3333-3333-3333-333333333303','00000000-0000-0000-0000-000000000011'),
   ('33333333-3333-3333-3333-333333333303','00000000-0000-0000-0000-000000000012');
+
+-- ============================================================
+-- product_type 設定（全商品）
+-- ============================================================
+UPDATE products SET product_type = 'Necklace' WHERE id = '11111111-1111-1111-1111-111111111101';
+UPDATE products SET product_type = 'Ring'      WHERE id = '11111111-1111-1111-1111-111111111102';
+UPDATE products SET product_type = 'Bracelet'  WHERE id = '11111111-1111-1111-1111-111111111103';
+UPDATE products SET product_type = 'Tshirt'    WHERE id = '22222222-2222-2222-2222-222222222201';
+UPDATE products SET product_type = 'Hoodie'    WHERE id = '22222222-2222-2222-2222-222222222202';
+UPDATE products SET product_type = 'Tshirt'    WHERE id = '22222222-2222-2222-2222-222222222203';
+UPDATE products SET product_type = 'Art'       WHERE id IN (
+  '33333333-3333-3333-3333-333333333301',
+  '33333333-3333-3333-3333-333333333302',
+  '33333333-3333-3333-3333-333333333303'
+);
+
+-- ============================================================
+-- product_specs 投入（attributes JSONB から変換）
+-- ============================================================
+-- Jewelry 1: Solitaire Necklace
+INSERT INTO product_specs (product_id, spec_type, spec_key, spec_value, sort_order) VALUES
+  ('11111111-1111-1111-1111-111111111101','jewelry','material',            '925 Sterling Silver', 0),
+  ('11111111-1111-1111-1111-111111111101','jewelry','metal_color',         'Silver',              1),
+  ('11111111-1111-1111-1111-111111111101','jewelry','stone_type',          'Moissanite',          2),
+  ('11111111-1111-1111-1111-111111111101','jewelry','carat',               '1.0',                 3),
+  ('11111111-1111-1111-1111-111111111101','jewelry','stone_color',         'D Color',             4),
+  ('11111111-1111-1111-1111-111111111101','jewelry','stone_clarity',       'VVS1',                5),
+  ('11111111-1111-1111-1111-111111111101','jewelry','moissanite_hardness', '9.25',                6),
+  ('11111111-1111-1111-1111-111111111101','jewelry','moissanite_ri',       '2.65-2.69',           7),
+  ('11111111-1111-1111-1111-111111111101','jewelry','setting',             'Solitaire',           8),
+  ('11111111-1111-1111-1111-111111111101','jewelry','chain_length',        '40cm / 45cm',         9);
+
+-- Jewelry 2: Eternal Ring
+INSERT INTO product_specs (product_id, spec_type, spec_key, spec_value, sort_order) VALUES
+  ('11111111-1111-1111-1111-111111111102','jewelry','material',            '925 Sterling Silver', 0),
+  ('11111111-1111-1111-1111-111111111102','jewelry','metal_color',         'Silver',              1),
+  ('11111111-1111-1111-1111-111111111102','jewelry','stone_type',          'Moissanite',          2),
+  ('11111111-1111-1111-1111-111111111102','jewelry','carat',               '0.5',                 3),
+  ('11111111-1111-1111-1111-111111111102','jewelry','stone_color',         'D Color',             4),
+  ('11111111-1111-1111-1111-111111111102','jewelry','stone_clarity',       'VVS1',                5),
+  ('11111111-1111-1111-1111-111111111102','jewelry','moissanite_hardness', '9.25',                6),
+  ('11111111-1111-1111-1111-111111111102','jewelry','moissanite_ri',       '2.65-2.69',           7),
+  ('11111111-1111-1111-1111-111111111102','jewelry','setting',             'Pavé',                8),
+  ('11111111-1111-1111-1111-111111111102','jewelry','ring_size',           '7〜15号',             9);
+
+-- Jewelry 3: Tennis Bracelet
+INSERT INTO product_specs (product_id, spec_type, spec_key, spec_value, sort_order) VALUES
+  ('11111111-1111-1111-1111-111111111103','jewelry','material',            '925 Sterling Silver', 0),
+  ('11111111-1111-1111-1111-111111111103','jewelry','metal_color',         'Silver',              1),
+  ('11111111-1111-1111-1111-111111111103','jewelry','stone_type',          'Moissanite',          2),
+  ('11111111-1111-1111-1111-111111111103','jewelry','carat',               '5.0',                 3),
+  ('11111111-1111-1111-1111-111111111103','jewelry','stone_color',         'D Color',             4),
+  ('11111111-1111-1111-1111-111111111103','jewelry','stone_clarity',       'VVS1',                5),
+  ('11111111-1111-1111-1111-111111111103','jewelry','moissanite_hardness', '9.25',                6),
+  ('11111111-1111-1111-1111-111111111103','jewelry','moissanite_ri',       '2.65-2.69',           7),
+  ('11111111-1111-1111-1111-111111111103','jewelry','chain_length',        '16cm / 18cm',         8);
+
+-- Apparel 1: Signature Tee
+INSERT INTO product_specs (product_id, spec_type, spec_key, spec_value, sort_order) VALUES
+  ('22222222-2222-2222-2222-222222222201','apparel','material',          '100% Cotton, 400g/m²', 0),
+  ('22222222-2222-2222-2222-222222222201','apparel','fit',               'Oversized',             1),
+  ('22222222-2222-2222-2222-222222222201','apparel','print_method',      'Screen Print',          2),
+  ('22222222-2222-2222-2222-222222222201','apparel','country_of_origin', 'Japan',                 3),
+  ('22222222-2222-2222-2222-222222222201','apparel','size_s_length',     '68',                    4),
+  ('22222222-2222-2222-2222-222222222201','apparel','size_s_width',      '52',                    5),
+  ('22222222-2222-2222-2222-222222222201','apparel','size_m_length',     '72',                    6),
+  ('22222222-2222-2222-2222-222222222201','apparel','size_m_width',      '55',                    7),
+  ('22222222-2222-2222-2222-222222222201','apparel','size_l_length',     '75',                    8),
+  ('22222222-2222-2222-2222-222222222201','apparel','size_l_width',      '58',                    9),
+  ('22222222-2222-2222-2222-222222222201','apparel','size_xl_length',    '78',                   10),
+  ('22222222-2222-2222-2222-222222222201','apparel','size_xl_width',     '62',                   11);
+
+-- Apparel 2: Long Sleeve
+INSERT INTO product_specs (product_id, spec_type, spec_key, spec_value, sort_order) VALUES
+  ('22222222-2222-2222-2222-222222222202','apparel','material',          '100% Cotton, 380g/m²', 0),
+  ('22222222-2222-2222-2222-222222222202','apparel','fit',               'Regular',              1),
+  ('22222222-2222-2222-2222-222222222202','apparel','print_method',      'Screen Print',         2),
+  ('22222222-2222-2222-2222-222222222202','apparel','country_of_origin', 'Japan',                3);
+
+-- Apparel 3: Moissanite Tee
+INSERT INTO product_specs (product_id, spec_type, spec_key, spec_value, sort_order) VALUES
+  ('22222222-2222-2222-2222-222222222203','apparel','material',          '100% Cotton, 400g/m²',              0),
+  ('22222222-2222-2222-2222-222222222203','apparel','fit',               'Oversized',                         1),
+  ('22222222-2222-2222-2222-222222222203','apparel','print_method',      'Embroidery + Moissanite Embellishment', 2),
+  ('22222222-2222-2222-2222-222222222203','apparel','country_of_origin', 'Japan',                             3);
+
+-- Art 1: Neon City
+INSERT INTO product_specs (product_id, spec_type, spec_key, spec_value, sort_order) VALUES
+  ('33333333-3333-3333-3333-333333333301','art','medium',      'UV Acrylic Print on Aluminum', 0),
+  ('33333333-3333-3333-3333-333333333301','art','edition',     'Limited 30',                   1),
+  ('33333333-3333-3333-3333-333333333301','art','edition_total','30',                          2),
+  ('33333333-3333-3333-3333-333333333301','art','signed',      'あり',                         3),
+  ('33333333-3333-3333-3333-333333333301','art','framed',      'なし',                         4),
+  ('33333333-3333-3333-3333-333333333301','art','certificate', 'あり',                         5);
+
+-- Art 2: Hip Hop Rise
+INSERT INTO product_specs (product_id, spec_type, spec_key, spec_value, sort_order) VALUES
+  ('33333333-3333-3333-3333-333333333302','art','medium',      'UV Acrylic Print on Aluminum', 0),
+  ('33333333-3333-3333-3333-333333333302','art','edition',     'Limited 20',                   1),
+  ('33333333-3333-3333-3333-333333333302','art','edition_total','20',                          2),
+  ('33333333-3333-3333-3333-333333333302','art','signed',      'あり',                         3),
+  ('33333333-3333-3333-3333-333333333302','art','framed',      'なし',                         4),
+  ('33333333-3333-3333-3333-333333333302','art','certificate', 'あり',                         5);
+
+-- Art 3: Pop Culture 01
+INSERT INTO product_specs (product_id, spec_type, spec_key, spec_value, sort_order) VALUES
+  ('33333333-3333-3333-3333-333333333303','art','medium',      'UV Acrylic Print',  0),
+  ('33333333-3333-3333-3333-333333333303','art','edition',     'Open Edition',      1),
+  ('33333333-3333-3333-3333-333333333303','art','signed',      'なし',              2),
+  ('33333333-3333-3333-3333-333333333303','art','framed',      'なし',              3),
+  ('33333333-3333-3333-3333-333333333303','art','certificate', 'なし',              4);
