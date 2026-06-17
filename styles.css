@@ -739,6 +739,23 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
   color: rgba(240, 244, 255, 0.22);
 }
 
+.footer-legal {
+  width: 100%;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding-top: 20px;
+  border-top: 1px solid rgba(240, 244, 255, 0.05);
+  margin-top: 8px;
+}
+.footer-legal a {
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  transition: color var(--trans);
+}
+.footer-legal a:hover { color: var(--text-secondary); }
+
 /* ============================================
    PRODUCT DETAIL PAGE (product.html)
    ============================================ */
