@@ -246,7 +246,7 @@ function initHero() {
   const prevBtn     = document.getElementById('heroPrev');
   const nextBtn     = document.getElementById('heroNext');
 
-  if (!container || !window.IMAGES || !IMAGES.length) return;
+  if (!container || typeof IMAGES === 'undefined' || !IMAGES.length) return;
 
   const total    = IMAGES.length;
   let current    = 0;
