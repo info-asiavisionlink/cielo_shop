@@ -88,26 +88,30 @@
   </div>
 </nav>
 
-<!-- ── Search ── -->
+<!-- ── Search + Tag Dropdown ── -->
 <div class="search-bar">
-  <div class="search-input-wrap">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-    </svg>
-    <input
-      type="search"
-      class="search-input"
-      id="searchInput"
-      placeholder="商品を検索..."
-      aria-label="商品検索"
-    >
-  </div>
-</div>
-
-<!-- ── Tag Filter ── -->
-<div class="tag-filter">
-  <div class="tag-filter-inner" id="tagFilter">
-    <button class="tag-btn active" data-tag="all">All</button>
+  <div class="search-row">
+    <div class="search-input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        type="search"
+        class="search-input"
+        id="searchInput"
+        placeholder="商品を検索..."
+        aria-label="商品検索"
+      >
+    </div>
+    <div class="tag-dropdown-wrap" id="tagDropdownWrap">
+      <button class="tag-dropdown-btn" id="tagDropdownBtn" aria-haspopup="true" aria-expanded="false">
+        <span class="tag-dropdown-label" id="tagDropdownLabel">タグ検索</span>
+        <svg class="tag-dropdown-caret" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="1 1 5 5 9 1"/>
+        </svg>
+      </button>
+      <div class="tag-dropdown-menu" id="tagDropdownMenu" role="listbox"></div>
+    </div>
   </div>
 </div>
 

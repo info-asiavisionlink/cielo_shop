@@ -81,24 +81,118 @@ async function fetchTags() {
   return data || [];
 }
 
-// ─── タグ描画 ────────────────────────────────
-function renderTags(tags, usedTagIds) {
-  const container = document.getElementById('tagFilter');
-  const used = tags.filter(t => usedTagIds.has(t.id));
+// ─── カテゴリ別タグマップ ─────────────────────
+// { all: Tag[], jewelry: Tag[], apparel: Tag[], art: Tag[] }
+let categoryTagMap = { all: [], jewelry: [], apparel: [], art: [] };
 
-  used.forEach(tag => {
-    const btn = document.createElement('button');
-    btn.className = 'tag-btn';
-    btn.dataset.tag = tag.id;
-    btn.textContent = tag.name_ja || tag.name;
-    btn.addEventListener('click', () => {
+function buildCategoryTagMap(products) {
+  const maps = { jewelry: new Map(), apparel: new Map(), art: new Map() };
+
+  products.forEach(p => {
+    const cat = p.category;
+    if (!maps[cat]) return;
+    (p.product_tags || []).forEach(pt => {
+      const tag = pt.tags;
+      if (tag && !maps[cat].has(tag.id)) maps[cat].set(tag.id, tag);
+    });
+  });
+
+  // ALL: 各カテゴリから最大3件ずつ
+  const allMap = new Map();
+  ['jewelry', 'apparel', 'art'].forEach(cat => {
+    [...maps[cat].values()].slice(0, 3).forEach(tag => {
+      if (!allMap.has(tag.id)) allMap.set(tag.id, tag);
+    });
+  });
+
+  categoryTagMap.all     = [...allMap.values()];
+  categoryTagMap.jewelry = [...maps.jewelry.values()];
+  categoryTagMap.apparel = [...maps.apparel.values()];
+  categoryTagMap.art     = [...maps.art.values()];
+}
+
+// ─── タグドロップダウン ───────────────────────
+function getTagDropdownEls() {
+  return {
+    btn:   document.getElementById('tagDropdownBtn'),
+    label: document.getElementById('tagDropdownLabel'),
+    menu:  document.getElementById('tagDropdownMenu'),
+  };
+}
+
+function closeTagDropdown() {
+  const { btn, menu } = getTagDropdownEls();
+  menu?.classList.remove('open');
+  btn?.classList.remove('open');
+  btn?.setAttribute('aria-expanded', 'false');
+}
+
+function updateTagDropdown() {
+  const { btn, label, menu } = getTagDropdownEls();
+  if (!menu) return;
+
+  const tags = categoryTagMap[activeCat] || [];
+
+  // 選択中タグが新カテゴリに存在しない場合はリセット
+  if (activeTag !== 'all' && !tags.some(t => t.id === activeTag)) {
+    activeTag = 'all';
+    if (label) label.textContent = 'タグ検索';
+    btn?.classList.remove('has-selection');
+  }
+
+  // メニュー再構築
+  menu.innerHTML = '';
+
+  // リセット行
+  const resetBtn = document.createElement('button');
+  resetBtn.className = 'tag-dropdown-item reset-item' + (activeTag === 'all' ? ' active' : '');
+  resetBtn.textContent = 'すべて';
+  resetBtn.addEventListener('click', () => {
+    activeTag = 'all';
+    label.textContent = 'タグ検索';
+    btn.classList.remove('has-selection');
+    closeTagDropdown();
+    renderProducts();
+  });
+  menu.appendChild(resetBtn);
+
+  // タグ行
+  tags.forEach(tag => {
+    const item = document.createElement('button');
+    item.className = 'tag-dropdown-item' + (activeTag === tag.id ? ' active' : '');
+    item.textContent = tag.name_ja || tag.name;
+    item.addEventListener('click', () => {
       activeTag = tag.id;
-      container.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      label.textContent = tag.name_ja || tag.name;
+      btn.classList.add('has-selection');
+      closeTagDropdown();
       renderProducts();
     });
-    container.appendChild(btn);
+    menu.appendChild(item);
   });
+}
+
+function initTagDropdown() {
+  const { btn, menu } = getTagDropdownEls();
+  if (!btn || !menu) return;
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const isOpen = menu.classList.contains('open');
+    if (isOpen) {
+      closeTagDropdown();
+    } else {
+      menu.classList.add('open');
+      btn.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  // メニュー内クリックは伝播しない（closeTagDropdownが発火しないよう）
+  menu.addEventListener('click', e => e.stopPropagation());
+
+  // 外側クリックで閉じる
+  document.addEventListener('click', closeTagDropdown);
 }
 
 // ─── フィルター ──────────────────────────────
@@ -191,8 +285,10 @@ function initCategoryFilter() {
       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       activeTag = 'all';
-      document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-      document.querySelector('.tag-btn[data-tag="all"]')?.classList.add('active');
+      const { label } = getTagDropdownEls();
+      if (label) label.textContent = 'タグ検索';
+      document.getElementById('tagDropdownBtn')?.classList.remove('has-selection');
+      updateTagDropdown();
       renderProducts();
     });
   });
@@ -333,6 +429,7 @@ async function init() {
   initHero();
   initCategoryFilter();
   initSearch();
+  initTagDropdown();
   applyUrlParams();
 
   const [products, tags] = await Promise.all([
@@ -345,13 +442,8 @@ async function init() {
     allProducts = [];
   } else {
     allProducts = products;
-    const usedTagIds = new Set();
-    products.forEach(p => {
-      (p.product_tags || []).forEach(pt => {
-        if (pt.tags?.id) usedTagIds.add(pt.tags.id);
-      });
-    });
-    renderTags(tags, usedTagIds);
+    buildCategoryTagMap(products);
+    updateTagDropdown();
   }
 
   renderProducts();
