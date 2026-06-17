@@ -9,61 +9,76 @@
   <meta property="og:description" content="Street Luxury. Jewelry. Apparel. Art.">
   <meta property="og:image" content="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png">
   <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@200;300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495771/e6azpivui9xg68hr1ria.png">
 </head>
 <body>
 
-<!-- ===================== HEADER ===================== -->
-<header class="site-header">
-  <a href="index.html" class="header-logo" aria-label="CIELO">
-    <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO">
-  </a>
-  <nav class="header-nav" aria-label="Main navigation">
-    <a href="index.html" class="active">Shop</a>
-    <a href="index.html?cat=jewelry">Jewelry</a>
-    <a href="index.html?cat=apparel">Apparel</a>
-    <a href="index.html?cat=art">Art</a>
-  </nav>
-  <div class="header-actions">
-    <button class="header-hamburger" id="menuOpen" aria-label="メニューを開く">
+<!-- ── Navigation ── -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO" class="nav-wordmark">
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html?cat=jewelry">Jewelry</a></li>
+      <li><a href="index.html?cat=apparel">Apparel</a></li>
+      <li><a href="index.html?cat=art">Art</a></li>
+      <li><a href="https://asiavision.link/#about" target="_blank" rel="noopener">About</a></li>
+      <li><a href="mailto:info@asiavision.link">Contact</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
   </div>
-</header>
+</nav>
 
-<!-- Mobile Menu -->
-<div class="mobile-menu" id="mobileMenu" role="dialog" aria-label="ナビゲーション">
-  <button class="mobile-menu-close" id="menuClose" aria-label="閉じる">✕</button>
-  <nav>
-    <a href="index.html" id="mobileMenuClose">Shop All</a>
-    <a href="index.html?cat=jewelry">Jewelry</a>
-    <a href="index.html?cat=apparel">Apparel</a>
-    <a href="index.html?cat=art">Art</a>
-  </nav>
-</div>
-
-<!-- ===================== HERO ===================== -->
-<section class="hero" aria-label="ヒーロー">
+<!-- ── Hero ── -->
+<section class="hero" aria-label="Hero">
   <div class="hero-fallback"></div>
   <div class="hero-slides" id="heroSlides" aria-hidden="true"></div>
 
   <div class="hero-content">
-    <p class="hero-eyebrow">Street Luxury</p>
-    <h1 class="hero-title" id="heroTitle">The light<br>you deserve.</h1>
-    <p class="hero-title-ja" id="heroTitleJa">あなたに相応しい輝き。</p>
-    <a href="#products" class="hero-cta">
-      Shop Now
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="3" y1="8" x2="13" y2="8"/><polyline points="9,4 13,8 9,12"/>
-      </svg>
-    </a>
+    <p class="hero-eyebrow">Street Luxury — Tokyo · Ginza</p>
+    <h1 class="hero-title">
+      <span id="heroTitleLine1">WEAR THE LIGHT.</span>
+      <span class="hero-title-sub" id="heroTitleLine2">Own The Room.</span>
+    </h1>
+    <p class="hero-sub">Moissanite Jewelry. Apparel. Art.<br>Built For The Few.</p>
+    <div class="hero-actions">
+      <a href="#products" class="btn btn-primary">Shop Now</a>
+      <a href="index.html?cat=jewelry" class="btn btn-ghost">Explore</a>
+    </div>
   </div>
 
-  <div class="hero-dots" id="heroDots" aria-hidden="true"></div>
+  <button class="hero-arrow hero-arrow-prev" id="heroPrev" aria-label="前のスライド">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="12.5 4 6.5 10 12.5 16"/>
+    </svg>
+  </button>
+  <button class="hero-arrow hero-arrow-next" id="heroNext" aria-label="次のスライド">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="7.5 4 13.5 10 7.5 16"/>
+    </svg>
+  </button>
+
+  <div class="hero-dots" id="heroDots" role="tablist" aria-label="スライドナビゲーション"></div>
+
+  <div class="hero-counter" aria-hidden="true">
+    <span class="hero-counter-current" id="heroCounterCurrent">01</span>
+    <span class="hero-counter-sep"> / </span>
+    <span class="hero-counter-total" id="heroCounterTotal">04</span>
+  </div>
+
+  <div class="hero-progress-track" aria-hidden="true">
+    <div class="hero-progress-fill" id="heroProgressFill"></div>
+  </div>
 </section>
 
-<!-- ===================== CATEGORY NAV ===================== -->
+<!-- ── Category Nav ── -->
 <nav class="category-nav" aria-label="カテゴリ">
   <div class="category-nav-inner">
     <button class="cat-btn active" data-cat="all">All</button>
@@ -73,7 +88,7 @@
   </div>
 </nav>
 
-<!-- ===================== SEARCH ===================== -->
+<!-- ── Search ── -->
 <div class="search-bar">
   <div class="search-input-wrap">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -89,19 +104,17 @@
   </div>
 </div>
 
-<!-- ===================== TAG FILTER ===================== -->
+<!-- ── Tag Filter ── -->
 <div class="tag-filter">
   <div class="tag-filter-inner" id="tagFilter">
     <button class="tag-btn active" data-tag="all">All</button>
-    <!-- Tags populated by JS -->
   </div>
 </div>
 
-<!-- ===================== PRODUCT GRID ===================== -->
+<!-- ── Product Grid ── -->
 <section class="products-section" id="products">
   <p class="products-count" id="productsCount"></p>
   <div class="product-grid" id="productGrid">
-    <!-- Skeleton loading -->
     <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
     <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
     <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
@@ -109,39 +122,24 @@
   </div>
 </section>
 
-<!-- ===================== FOOTER ===================== -->
+<!-- ── Footer ── -->
 <footer class="site-footer">
-  <div class="footer-top">
+  <div class="footer-inner">
     <div class="footer-brand">
-      <div class="footer-logo">
-        <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO">
-      </div>
+      <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO" class="footer-wordmark">
       <p class="footer-tagline">Street Luxury.<br>Jewelry. Apparel. Art.</p>
     </div>
-    <div class="footer-nav-group">
-      <h4>Shop</h4>
-      <ul>
-        <li><a href="index.html?cat=jewelry">Jewelry</a></li>
-        <li><a href="index.html?cat=apparel">Apparel</a></li>
-        <li><a href="index.html?cat=art">Art</a></li>
-      </ul>
-    </div>
-    <div class="footer-nav-group">
-      <h4>Brand</h4>
-      <ul>
-        <li><a href="#">About CIELO</a></li>
-        <li><a href="#">Moissanite</a></li>
-        <li><a href="#">ASIA VISION LINK</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p>© 2025 CIELO / ASIA VISION LINK. All rights reserved.</p>
-    <p>Powered by ASIA VISION LINK OS</p>
+    <nav class="footer-nav" aria-label="Footer">
+      <a href="index.html?cat=jewelry">Jewelry</a>
+      <a href="index.html?cat=apparel">Apparel</a>
+      <a href="index.html?cat=art">Art</a>
+      <a href="https://asiavision.link/#about" target="_blank" rel="noopener">About</a>
+      <a href="mailto:info@asiavision.link">Contact</a>
+    </nav>
+    <p class="footer-copy">© 2025 CIELO / ASIA VISION LINK. All rights reserved.</p>
   </div>
 </footer>
 
-<!-- ===================== SCRIPTS ===================== -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase.js"></script>
 <script src="hero-config.js"></script>

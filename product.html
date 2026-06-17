@@ -9,38 +9,32 @@
   <meta property="og:description" content="">
   <meta property="og:image" content="">
   <meta property="og:type" content="product">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@200;300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495771/e6azpivui9xg68hr1ria.png">
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="site-header">
-  <a href="index.html" class="header-logo" aria-label="CIELO">
-    <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO">
-  </a>
-  <nav class="header-nav" aria-label="Main navigation">
-    <a href="index.html">Shop</a>
-    <a href="index.html?cat=jewelry">Jewelry</a>
-    <a href="index.html?cat=apparel">Apparel</a>
-    <a href="index.html?cat=art">Art</a>
-  </nav>
-  <div class="header-actions">
-    <button class="header-hamburger" id="menuOpen" aria-label="メニューを開く">
+<!-- ── Navigation ── -->
+<nav class="nav scrolled" id="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO" class="nav-wordmark">
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html?cat=jewelry">Jewelry</a></li>
+      <li><a href="index.html?cat=apparel">Apparel</a></li>
+      <li><a href="index.html?cat=art">Art</a></li>
+      <li><a href="https://asiavision.link/#about" target="_blank" rel="noopener">About</a></li>
+      <li><a href="mailto:info@asiavision.link">Contact</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
   </div>
-</header>
-
-<div class="mobile-menu" id="mobileMenu" role="dialog">
-  <button class="mobile-menu-close" id="menuClose">✕</button>
-  <nav>
-    <a href="index.html">Shop All</a>
-    <a href="index.html?cat=jewelry">Jewelry</a>
-    <a href="index.html?cat=apparel">Apparel</a>
-    <a href="index.html?cat=art">Art</a>
-  </nav>
-</div>
+</nav>
 
 <!-- PRODUCT PAGE -->
 <main class="pt-header">
@@ -131,26 +125,21 @@
   </div>
 </main>
 
-<!-- FOOTER -->
+<!-- ── Footer ── -->
 <footer class="site-footer">
-  <div class="footer-top">
+  <div class="footer-inner">
     <div class="footer-brand">
-      <div class="footer-logo">
-        <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO">
-      </div>
+      <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO" class="footer-wordmark">
       <p class="footer-tagline">Street Luxury.<br>Jewelry. Apparel. Art.</p>
     </div>
-    <div class="footer-nav-group">
-      <h4>Shop</h4>
-      <ul>
-        <li><a href="index.html?cat=jewelry">Jewelry</a></li>
-        <li><a href="index.html?cat=apparel">Apparel</a></li>
-        <li><a href="index.html?cat=art">Art</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p>© 2025 CIELO / ASIA VISION LINK. All rights reserved.</p>
+    <nav class="footer-nav" aria-label="Footer">
+      <a href="index.html?cat=jewelry">Jewelry</a>
+      <a href="index.html?cat=apparel">Apparel</a>
+      <a href="index.html?cat=art">Art</a>
+      <a href="https://asiavision.link/#about" target="_blank" rel="noopener">About</a>
+      <a href="mailto:info@asiavision.link">Contact</a>
+    </nav>
+    <p class="footer-copy">© 2025 CIELO / ASIA VISION LINK. All rights reserved.</p>
   </div>
 </footer>
 
@@ -420,11 +409,19 @@ function renderProduct(product) {
   renderVariants(product, variants);
 }
 
-document.getElementById('menuOpen')?.addEventListener('click', () => {
-  document.getElementById('mobileMenu').classList.add('open');
+// Nav mobile toggle (product page: always scrolled)
+const _navEl     = document.getElementById('nav');
+const _navToggle = document.getElementById('navToggle');
+const _navLinks  = document.getElementById('navLinks');
+_navToggle?.addEventListener('click', () => {
+  _navToggle.classList.toggle('open');
+  _navLinks.classList.toggle('open');
 });
-document.getElementById('menuClose')?.addEventListener('click', () => {
-  document.getElementById('mobileMenu').classList.remove('open');
+_navLinks?.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => {
+    _navToggle.classList.remove('open');
+    _navLinks.classList.remove('open');
+  });
 });
 
 (async function loadProduct() {

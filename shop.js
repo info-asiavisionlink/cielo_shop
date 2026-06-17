@@ -3,23 +3,22 @@
    Supabase のみからデータ取得。モックデータなし。
    ============================================= */
 
-// ─── 画像が存在しない場合のプレースホルダー ──────────
 const PLACEHOLDER_IMG = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">' +
-  '<rect fill="#1A1A1A" width="400" height="400"/>' +
+  '<rect fill="#171717" width="400" height="400"/>' +
   '<text x="200" y="196" text-anchor="middle" dominant-baseline="middle" ' +
   'fill="#2A2A2A" font-size="14" font-family="sans-serif" letter-spacing="8">CIELO</text>' +
   '</svg>'
 );
 
 // ─── 状態管理 ────────────────────────────────
-let allProducts  = [];
-let activeCat    = 'all';
-let activeTag    = 'all';
-let searchQuery  = '';
-let fetchError   = null;   // null = 正常, Error = 接続失敗
+let allProducts = [];
+let activeCat   = 'all';
+let activeTag   = 'all';
+let searchQuery = '';
+let fetchError  = null;
 
-// ─── Supabase 接続確認 & テーブルカウント ────────
+// ─── Supabase 接続確認 ────────────────────────
 async function logTableCounts() {
   const [pRes, iRes, vRes] = await Promise.all([
     db.from('products').select('*', { count: 'exact', head: true }),
@@ -27,33 +26,26 @@ async function logTableCounts() {
     db.from('product_variants').select('*', { count: 'exact', head: true }),
   ]);
 
-  const pErr = pRes.error || iRes.error || vRes.error;
-  if (pErr) {
-    console.error('[CIELO] テーブルカウント取得失敗:', pErr.message, '| code:', pErr.code);
-    console.warn('[CIELO] SQLが未実行の可能性があります。Supabase SQL Editor で create_tables.sql を実行してください。');
+  if (pRes.error || iRes.error || vRes.error) {
+    const err = pRes.error || iRes.error || vRes.error;
+    console.error('[CIELO] テーブルカウント取得失敗:', err.message);
     return;
   }
-
-  console.log(`Products: ${pRes.count}`);
-  console.log(`Images: ${iRes.count}`);
-  console.log(`Variants: ${vRes.count}`);
+  console.log(`Products: ${pRes.count} / Images: ${iRes.count} / Variants: ${vRes.count}`);
 }
 
-// ─── ブラウザコンソールから再テスト可能 ──────
 window._cieloDebug = async function () {
-  console.log('[CIELO Debug] Supabase URL:', SUPABASE_URL);
-  console.log('[CIELO Debug] 接続テスト中...');
+  console.log('[CIELO Debug] URL:', SUPABASE_URL);
   const { data, error } = await db.from('products').select('id').limit(1);
   if (error) {
     console.error('[CIELO Debug] 接続失敗:', error);
   } else {
-    console.log('[CIELO Debug] 接続OK。レスポンス:', data);
+    console.log('[CIELO Debug] 接続OK:', data);
     await logTableCounts();
   }
 };
 
 // ─── 商品取得 ────────────────────────────────
-// 戻り値: Product[] | null（null = 接続エラー）
 async function fetchProducts() {
   const { data, error } = await db
     .from('products')
@@ -72,7 +64,6 @@ async function fetchProducts() {
     console.error('[CIELO] products 取得エラー:', error.message, '| code:', error.code);
     return null;
   }
-
   fetchError = null;
   return data || [];
 }
@@ -83,7 +74,6 @@ async function fetchTags() {
     .from('tags')
     .select('id, name, name_ja')
     .order('name');
-
   if (error) {
     console.warn('[CIELO] tags 取得エラー:', error.message);
     return [];
@@ -114,8 +104,8 @@ function renderTags(tags, usedTagIds) {
 // ─── フィルター ──────────────────────────────
 function filterProducts() {
   return allProducts.filter(p => {
-    const matchCat = activeCat === 'all' || p.category === activeCat;
-    const matchTag = activeTag === 'all'
+    const matchCat  = activeCat === 'all' || p.category === activeCat;
+    const matchTag  = activeTag === 'all'
       || (p.product_tags || []).some(pt => pt.tags?.id === activeTag);
     const q = searchQuery.toLowerCase();
     const matchSearch = !q
@@ -157,22 +147,19 @@ function renderCard(product) {
 
 // ─── 商品グリッド描画 ────────────────────────
 function renderProducts() {
-  const grid     = document.getElementById('productGrid');
-  const countEl  = document.getElementById('productsCount');
+  const grid    = document.getElementById('productGrid');
+  const countEl = document.getElementById('productsCount');
 
-  // 接続エラー
   if (fetchError) {
     grid.innerHTML = `
       <div class="products-empty" style="grid-column:1/-1">
         <p>商品を読み込めませんでした</p>
-        <p style="font-size:12px;color:var(--white-dim);margin-top:8px;">
-          しばらく時間をおいて再度お試しください
-        </p>
+        <p style="font-size:12px;margin-top:8px;">しばらく時間をおいて再度お試しください</p>
         <button
           onclick="location.reload()"
-          style="margin-top:16px;padding:10px 20px;font-size:12px;font-weight:600;
-                 letter-spacing:0.08em;text-transform:uppercase;
-                 border:1px solid var(--border-h);color:var(--white-dim);background:none;cursor:pointer;">
+          style="margin-top:20px;padding:12px 24px;font-size:11px;font-weight:700;
+                 letter-spacing:0.12em;text-transform:uppercase;
+                 border:1px solid rgba(240,244,255,0.18);color:rgba(240,244,255,0.6);background:none;cursor:pointer;">
           再読み込み
         </button>
       </div>`;
@@ -182,12 +169,11 @@ function renderProducts() {
 
   const filtered = filterProducts();
 
-  // 検索・フィルター結果なし
   if (filtered.length === 0) {
     grid.innerHTML = `
       <div class="products-empty" style="grid-column:1/-1">
         <p>商品が見つかりません</p>
-        <p style="font-size:13px;margin-top:4px;color:var(--white-dim);">条件を変更してお試しください</p>
+        <p style="font-size:13px;margin-top:6px;">条件を変更してお試しください</p>
       </div>`;
     countEl.textContent = '0 items';
     return;
@@ -204,11 +190,9 @@ function initCategoryFilter() {
       activeCat = btn.dataset.cat;
       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
       activeTag = 'all';
       document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
       document.querySelector('.tag-btn[data-tag="all"]')?.classList.add('active');
-
       renderProducts();
     });
   });
@@ -227,61 +211,109 @@ function initSearch() {
   });
 }
 
-// ─── Hero Slider (3秒フェード) ───────────────
+// ─── ナビゲーション (スクロール + モバイルトグル) ──
+function initNav() {
+  const nav    = document.getElementById('nav');
+  const toggle = document.getElementById('navToggle');
+  const links  = document.getElementById('navLinks');
+
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 20);
+  }, { passive: true });
+
+  toggle?.addEventListener('click', () => {
+    toggle.classList.toggle('open');
+    links.classList.toggle('open');
+  });
+
+  links?.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      toggle.classList.remove('open');
+      links.classList.remove('open');
+    });
+  });
+}
+
+// ─── Hero Slider ─────────────────────────────
 function initHero() {
-  const container = document.getElementById('heroSlides');
-  const dotsEl    = document.getElementById('heroDots');
-  const titleEl   = document.getElementById('heroTitle');
-  const titleJaEl = document.getElementById('heroTitleJa');
-  let current = 0;
+  const container   = document.getElementById('heroSlides');
+  const dotsEl      = document.getElementById('heroDots');
+  const titleLine1  = document.getElementById('heroTitleLine1');
+  const titleLine2  = document.getElementById('heroTitleLine2');
+  const counterCur  = document.getElementById('heroCounterCurrent');
+  const counterTot  = document.getElementById('heroCounterTotal');
+  const progressFill = document.getElementById('heroProgressFill');
+  const prevBtn     = document.getElementById('heroPrev');
+  const nextBtn     = document.getElementById('heroNext');
+
+  if (!container || !window.IMAGES || !IMAGES.length) return;
+
+  const total    = IMAGES.length;
+  let current    = 0;
   let timer;
+  const INTERVAL = 5000;
 
-  if (!container || !window.HERO_IMAGES || HERO_IMAGES.length === 0) return;
+  if (counterTot) counterTot.textContent = String(total).padStart(2, '0');
 
-  HERO_IMAGES.forEach((src, i) => {
+  // スライドとドットを生成
+  IMAGES.forEach((item, i) => {
     const slide = document.createElement('div');
     slide.className = 'hero-slide' + (i === 0 ? ' active' : '');
-    // 画像読み込みエラー時はフォールバック（グラデーション背景のまま）
-    const img = new Image();
-    img.onload = () => { slide.style.backgroundImage = `url('${src}')`; };
-    img.src = src;
+    if (item.image) {
+      const img = new Image();
+      img.onload = () => { slide.style.backgroundImage = `url('${item.image}')`; };
+      img.src = item.image;
+    }
     container.appendChild(slide);
 
     const dot = document.createElement('button');
     dot.className = 'hero-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('role', 'tab');
     dot.setAttribute('aria-label', `スライド ${i + 1}`);
     dot.addEventListener('click', () => { goTo(i); resetTimer(); });
     dotsEl.appendChild(dot);
   });
+
+  function updateContent(idx) {
+    const item = IMAGES[idx];
+    if (titleLine1) titleLine1.textContent = item.title    || '';
+    if (titleLine2) titleLine2.textContent = item.subtitle || '';
+    if (counterCur) counterCur.textContent = String(idx + 1).padStart(2, '0');
+  }
+
+  function startProgress() {
+    if (!progressFill) return;
+    progressFill.style.transition = 'none';
+    progressFill.style.width = '0%';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        progressFill.style.transition = `width ${INTERVAL}ms linear`;
+        progressFill.style.width = '100%';
+      });
+    });
+  }
 
   function goTo(idx) {
     const slides = container.querySelectorAll('.hero-slide');
     const dots   = dotsEl.querySelectorAll('.hero-dot');
     slides[current].classList.remove('active');
     dots[current].classList.remove('active');
-    current = (idx + HERO_IMAGES.length) % HERO_IMAGES.length;
+    current = ((idx % total) + total) % total;
     slides[current].classList.add('active');
     dots[current].classList.add('active');
-
-    if (window.HERO_CAPTIONS?.[current]) {
-      titleEl.innerHTML    = HERO_CAPTIONS[current].en.replace('. ', '.<br>');
-      titleJaEl.textContent = HERO_CAPTIONS[current].ja;
-    }
+    updateContent(current);
+    startProgress();
   }
 
-  function startTimer() { timer = setInterval(() => goTo(current + 1), 3000); }
+  function startTimer() { timer = setInterval(() => goTo(current + 1), INTERVAL); }
   function resetTimer()  { clearInterval(timer); startTimer(); }
-  startTimer();
-}
 
-// ─── モバイルメニュー ────────────────────────
-function initMobileMenu() {
-  const menu  = document.getElementById('mobileMenu');
-  const open  = document.getElementById('menuOpen');
-  const close = document.getElementById('menuClose');
-  open?.addEventListener('click',  () => menu.classList.add('open'));
-  close?.addEventListener('click', () => menu.classList.remove('open'));
-  menu?.addEventListener('click',  e => { if (e.target === menu) menu.classList.remove('open'); });
+  prevBtn?.addEventListener('click', () => { goTo(current - 1); resetTimer(); });
+  nextBtn?.addEventListener('click', () => { goTo(current + 1); resetTimer(); });
+
+  updateContent(0);
+  startProgress();
+  startTimer();
 }
 
 // ─── URL パラメータ (?cat=jewelry) ───────────
@@ -297,25 +329,22 @@ function applyUrlParams() {
 
 // ─── メイン初期化 ────────────────────────────
 async function init() {
+  initNav();
   initHero();
   initCategoryFilter();
   initSearch();
-  initMobileMenu();
   applyUrlParams();
 
-  // 並行取得: 商品 + タグ + テーブルカウント（コンソールログ用）
   const [products, tags] = await Promise.all([
     fetchProducts(),
     fetchTags(),
     logTableCounts(),
   ]);
 
-  // products が null = Supabase 接続失敗
   if (products === null) {
     allProducts = [];
   } else {
     allProducts = products;
-
     const usedTagIds = new Set();
     products.forEach(p => {
       (p.product_tags || []).forEach(pt => {
