@@ -280,6 +280,31 @@ const PLACEHOLDER_IMG = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent
 
 let galleryIndex = 0;
 
+// ── Stripe Checkout 開始（フロントは productId / variantId / quantity のみ送信）
+async function initiateCheckout(payload, btn) {
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '処理中...';
+  btn.style.opacity = '0.6';
+
+  try {
+    const res = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || '決済の開始に失敗しました');
+    window.location.href = data.url;
+  } catch (err) {
+    console.error('[CIELO] Checkout error:', err);
+    alert(err.message || '決済の開始に失敗しました。もう一度お試しください。');
+    btn.disabled = false;
+    btn.textContent = originalText;
+    btn.style.opacity = '';
+  }
+}
+
 function safeImgSrc(url) {
   return url || PLACEHOLDER_IMG;
 }
@@ -635,27 +660,15 @@ function renderVariants(product, variants) {
       setPrice(totalPrice);
       activateCTA(3);
 
-      // Stripe送信ペイロード（buyBtn.dataset.orderJson に格納）
+      // Checkout 用ペイロード（ID と数量のみ。価格はサーバーが Supabase から取得）
       buyBtn.dataset.orderJson = JSON.stringify({
-        product_id: product.id,
+        productId: product.id,
         items: Object.entries(selectedItems)
           .filter(([, q]) => q > 0)
           .map(([label, q]) => {
-            const v    = vMap[label];
-            const sep  = label.indexOf(' / ');
-            const unit = basePrice + (v?.price_modifier || 0);
-            return {
-              variant_id: v?.id,
-              color:      label.slice(0, sep),
-              size:       label.slice(sep + 3),
-              quantity:   q,
-              sku:        v?.sku,
-              unit_price: unit,
-              subtotal:   unit * q,
-            };
+            const v = vMap[label];
+            return { variantId: v?.id, quantity: q };
           }),
-        total_qty:   totalQty,
-        total_price: totalPrice,
       });
     }
 
@@ -715,12 +728,12 @@ function renderVariants(product, variants) {
       });
     });
 
-    buyBtn.onclick = () => {
+    buyBtn.onclick = async () => {
       if (buyBtn.disabled) return;
-      const payload = JSON.parse(buyBtn.dataset.orderJson || '{}');
-      console.log('[CIELO] Order payload (Stripe-ready):', payload);
-      // TODO: Stripe checkout session 作成
-      // 在庫減算は Stripe webhook → Supabase Edge Function で処理
+      const raw = JSON.parse(buyBtn.dataset.orderJson || '{}');
+      if (!raw.items?.length) return;
+      const slug = new URLSearchParams(window.location.search).get('slug');
+      await initiateCheckout({ productId: raw.productId, productSlug: slug, items: raw.items }, buyBtn);
     };
 
   /* ══ Jewelry / Art ══ */
@@ -747,7 +760,7 @@ function renderVariants(product, variants) {
             const lowCl = v.stock_count > 0 && v.stock_count <= 5 ? ' low-stock' : '';
             return `<button class="variant-btn${v.stock_count===0?' sold-out':''}${lowCl}"
               data-sku="${v.sku}" data-stock="${v.stock_count}"
-              data-modifier="${v.price_modifier}" data-vtype="${type}"
+              data-modifier="${v.price_modifier}" data-vtype="${type}" data-vid="${v.id}"
               ${v.stock_count===0?'disabled':''}>
               ${pr}${v.label_ja || v.label}${st}</button>`;
           }).join('')}
@@ -777,14 +790,7 @@ function renderVariants(product, variants) {
           document.getElementById('summaryLines').innerHTML =
             `<div class="order-line"><span>${label}</span><span>¥${totalPrice.toLocaleString('ja-JP')}</span></div>`;
           document.getElementById('summaryTotal').textContent = `¥${totalPrice.toLocaleString('ja-JP')}`;
-          buyBtn.dataset.orderJson = JSON.stringify({
-            product_id: product.id,
-            items: Object.values(selected).map(b => ({
-              variant_id: undefined, sku: b.dataset.sku,
-              unit_price: basePrice + parseInt(b.dataset.modifier || 0), quantity: qty,
-            })),
-            total_price: totalPrice,
-          });
+          // orderJson は表示用サマリーにのみ使用。価格はサーバーが Supabase から再取得する。
         } else {
           qtySection.style.display = 'none';
           orderSummaryBox.style.display = 'none';
@@ -797,9 +803,11 @@ function renderVariants(product, variants) {
       });
     });
 
-    buyBtn.onclick = () => {
+    buyBtn.onclick = async () => {
       if (buyBtn.disabled) return;
-      console.log('[CIELO] Order payload:', JSON.parse(buyBtn.dataset.orderJson || '{}'));
+      const slug  = new URLSearchParams(window.location.search).get('slug');
+      const items = Object.values(selected).map(b => ({ variantId: b.dataset.vid, quantity: qty }));
+      await initiateCheckout({ productId: product.id, productSlug: slug, items }, buyBtn);
     };
   }
 

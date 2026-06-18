@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed | CIELO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495771/e6azpivui9xg68hr1ria.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:      #c8a96e;
+      --gold-dim:  rgba(200,169,110,.45);
+      --white:     #f0f4ff;
+      --white-dim: rgba(240,244,255,.55);
+      --bg:        #0d0d0d;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Nav */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(13,13,13,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(240,244,255,.06);
+      padding: 0 32px; height: 60px;
+      display: flex; align-items: center;
+    }
+    .nav-logo img { height: 22px; }
+
+    /* Main */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px 48px;
+      text-align: center;
+    }
+
+    .icon-wrap {
+      width: 72px; height: 72px;
+      border: 1.5px solid var(--gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 32px;
+      animation: fadeIn .6s ease both;
+    }
+    .icon-wrap svg { width: 32px; height: 32px; stroke: var(--gold); }
+
+    .label-tag {
+      font-family: 'Outfit', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+      animation: fadeIn .6s .1s ease both;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 200;
+      letter-spacing: .06em;
+      color: var(--white);
+      margin-bottom: 20px;
+      animation: fadeIn .6s .15s ease both;
+    }
+
+    .message {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--white-dim);
+      max-width: 480px;
+      margin: 0 auto 40px;
+      animation: fadeIn .6s .2s ease both;
+    }
+
+    .divider {
+      width: 48px; height: 1px;
+      background: var(--gold-dim);
+      margin: 0 auto 40px;
+      animation: fadeIn .6s .25s ease both;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      animation: fadeIn .6s .3s ease both;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      padding: 14px 40px;
+      background: var(--gold);
+      color: #000;
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: background .2s;
+    }
+    .btn-primary:hover { background: #d4b87a; }
+
+    .btn-secondary {
+      font-size: 11px;
+      letter-spacing: .1em;
+      color: var(--white-dim);
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+    .btn-secondary:hover { color: var(--white); }
+
+    .session-id {
+      margin-top: 48px;
+      font-size: 11px;
+      color: rgba(240,244,255,.2);
+      letter-spacing: .04em;
+      animation: fadeIn .6s .4s ease both;
+    }
+
+    /* Footer */
+    footer {
+      padding: 24px 32px;
+      border-top: 1px solid rgba(240,244,255,.06);
+      text-align: center;
+      font-size: 11px;
+      color: rgba(240,244,255,.2);
+      letter-spacing: .05em;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">
+    <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO">
+  </a>
+</nav>
+
+<main>
+  <div class="icon-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  </div>
+
+  <p class="label-tag">Order Confirmed</p>
+
+  <h1>Thank You.</h1>
+
+  <p class="message">
+    ご注文ありがとうございます。<br>
+    確認メールを入力いただいたアドレスへお送りしました。<br>
+    発送準備が整い次第、発送通知をお届けします。
+  </p>
+
+  <div class="divider"></div>
+
+  <div class="btn-group">
+    <a href="index.html" class="btn-primary">Shop に戻る</a>
+    <a href="mailto:info@asiavision.link" class="btn-secondary">お問い合わせ</a>
+  </div>
+
+  <p class="session-id" id="sessionId"></p>
+</main>
+
+<footer>
+  © 2025 CIELO / ASIA VISION LINK. All rights reserved.
+</footer>
+
+<script>
+  const sessionId = new URLSearchParams(window.location.search).get('session_id');
+  if (sessionId) {
+    document.getElementById('sessionId').textContent = `Order ref: ${sessionId}`;
+  }
+</script>
+</body>
+</html>
