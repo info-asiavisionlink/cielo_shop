@@ -490,6 +490,7 @@ function renderVariants(product, variants) {
   const priceEl         = document.getElementById('productPrice');
   const basePrice       = product.price;
   let qty = 1;
+  // ── ここから新実装 ──
 
   function setPrice(total) {
     priceEl.innerHTML = `¥${total.toLocaleString('ja-JP')}<span class="product-price-note">（税込）</span>`;
@@ -530,39 +531,87 @@ function renderVariants(product, variants) {
 
   if (!variants.length) { resetCTA('オプションなし'); return; }
 
-  /* ══ Apparel — STEPガイド付き統合サイズ表 ══ */
+  /* ══ Apparel — カラー横断マルチ選択 ══
+     状態: selectedItems["Black / S"] = 2
+     カラー切替 = 表示切替のみ（データリセットなし）
+     カラーボタンは Supabase product_variants から動的生成（固定値ではない）
+  ══ */
   if (product.category === 'apparel') {
     qtySection.style.display = 'none';
 
     const vMap = {};
     variants.forEach(v => { vMap[v.label] = v; });
+
+    // カラー・サイズを Supabase variant から動的取得（モックではない）
     const colors   = [...new Set(variants.map(v => v.label.split(' / ')[0]?.trim()).filter(Boolean))];
     const allSizes = [...new Set(variants.map(v => v.label.split(' / ')[1]?.trim()).filter(Boolean))];
 
-    // product_specs からサイズ寸法を取得
+    // 状態管理: キー = "Black / S"（variant.label と同形式）
+    // カラー切替でリセットしない
+    const selectedItems = {};
+    variants.forEach(v => { selectedItems[v.label] = 0; });
+
+    // product_specs からサイズ寸法
     const specMap = {};
     (product.product_specs || []).forEach(s => {
       if (/^size_[a-z]+_(length|width)$/i.test(s.spec_key)) specMap[s.spec_key] = s.spec_value;
     });
 
-    const qtys = {};
-    allSizes.forEach(sz => { qtys[sz] = 0; });
+    let activeColor = colors[0];
 
-    /* サマリー更新 */
-    function refreshSummary(color) {
-      const lines = [];
+    /* サイズ行HTML（selectedItemsの現在値を反映） */
+    function buildSizeRows(color) {
+      return allSizes.map(sz => {
+        const key      = `${color} / ${sz}`;
+        const v        = vMap[key];
+        const soldOut  = !v || v.stock_count === 0;
+        const maxStock = v?.stock_count || 0;
+        const low      = !soldOut && maxStock <= 5;
+        const curQty   = selectedItems[key] || 0;
+        const szKey    = sz.toLowerCase();
+        const len      = specMap[`size_${szKey}_length`];
+        const wid      = specMap[`size_${szKey}_width`];
+        const dims     = [len && `着丈 ${len}cm`, wid && `身幅 ${wid}cm`].filter(Boolean).join('  /  ');
+        const stockCls = soldOut ? 'sold' : low ? 'low' : 'ok';
+        const stockTxt = soldOut ? 'Sold Out' : `残り ${maxStock}点`;
+
+        return `<div class="sz-row${soldOut ? ' sz-row-soldout' : ''}">
+          <div class="sz-info">
+            <div class="sz-name">${sz}</div>
+            ${dims ? `<div class="sz-dims">${dims}</div>` : ''}
+          </div>
+          <div class="sz-stock ${stockCls}">${stockTxt}</div>
+          <div class="sz-qty-wrap">
+            <button class="sz-qty-btn" data-key="${key}" data-dir="-" data-max="${maxStock}"
+              ${soldOut || curQty === 0 ? 'disabled' : ''}>−</button>
+            <span class="sz-qty-val" id="sq_${szKey}">${curQty}</span>
+            <button class="sz-qty-btn" data-key="${key}" data-dir="+" data-max="${maxStock}"
+              ${soldOut || curQty >= maxStock ? 'disabled' : ''}>+</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    /* サマリー（全カラー横断集計） */
+    function refreshSummary() {
+      const byColor = {};
       let totalQty = 0, totalPrice = 0;
-      allSizes.forEach(sz => {
-        const q = qtys[sz];
-        if (q > 0) {
-          const v    = vMap[`${color} / ${sz}`];
-          const unit = basePrice + (v?.price_modifier || 0);
-          lines.push({ sz, q, unit, sub: unit * q, v });
-          totalQty += q; totalPrice += unit * q;
-        }
+
+      Object.entries(selectedItems).forEach(([label, q]) => {
+        if (q <= 0) return;
+        const v   = vMap[label];
+        if (!v) return;
+        const sep = label.indexOf(' / ');
+        const c   = label.slice(0, sep);
+        const sz  = label.slice(sep + 3);
+        const unit = basePrice + (v.price_modifier || 0);
+        if (!byColor[c]) byColor[c] = [];
+        byColor[c].push({ sz, q, unit, sub: unit * q });
+        totalQty   += q;
+        totalPrice += unit * q;
       });
 
-      if (lines.length === 0) {
+      if (totalQty === 0) {
         orderSummaryBox.style.display = 'none';
         ctaStep.style.display = 'none';
         buyBtn.disabled = true;
@@ -574,120 +623,105 @@ function renderVariants(product, variants) {
 
       orderSummaryBox.style.display = 'block';
       document.getElementById('summaryLines').innerHTML =
-        `<div class="summary-color">${color}</div>` +
-        lines.map(l =>
-          `<div class="order-line"><span>${l.sz} × ${l.q}</span><span>¥${l.sub.toLocaleString('ja-JP')}</span></div>`
+        Object.entries(byColor).map(([c, lines]) =>
+          `<div class="summary-color">${c}</div>` +
+          lines.map(l =>
+            `<div class="order-line"><span>${l.sz} × ${l.q}</span><span>¥${l.sub.toLocaleString('ja-JP')}</span></div>`
+          ).join('')
         ).join('') +
         `<div class="order-line order-qty-line"><span>合計数量</span><span>${totalQty}点</span></div>`;
+
       document.getElementById('summaryTotal').textContent = `¥${totalPrice.toLocaleString('ja-JP')}`;
       setPrice(totalPrice);
       activateCTA(3);
 
+      // Stripe送信ペイロード（buyBtn.dataset.orderJson に格納）
       buyBtn.dataset.orderJson = JSON.stringify({
         product_id: product.id,
-        color,
-        items: lines.map(l => ({
-          variant_id: l.v?.id,
-          color,
-          size:       l.sz,
-          quantity:   l.q,
-          sku:        l.v?.sku,
-          unit_price: l.unit,
-          subtotal:   l.sub,
-        })),
+        items: Object.entries(selectedItems)
+          .filter(([, q]) => q > 0)
+          .map(([label, q]) => {
+            const v    = vMap[label];
+            const sep  = label.indexOf(' / ');
+            const unit = basePrice + (v?.price_modifier || 0);
+            return {
+              variant_id: v?.id,
+              color:      label.slice(0, sep),
+              size:       label.slice(sep + 3),
+              quantity:   q,
+              sku:        v?.sku,
+              unit_price: unit,
+              subtotal:   unit * q,
+            };
+          }),
         total_qty:   totalQty,
         total_price: totalPrice,
       });
     }
 
-    /* サイズ行ビルド */
-    function buildSizeRows(color) {
-      return allSizes.map(sz => {
-        const v        = vMap[`${color} / ${sz}`];
-        const soldOut  = !v || v.stock_count === 0;
-        const maxStock = v?.stock_count || 0;
-        const low      = !soldOut && maxStock <= 5;
-        const szKey    = sz.toLowerCase();
-        const len      = specMap[`size_${szKey}_length`];
-        const wid      = specMap[`size_${szKey}_width`];
-        const dims     = [len && `着丈 ${len}cm`, wid && `身幅 ${wid}cm`].filter(Boolean).join('  /  ');
-        const stockCls = soldOut ? 'sold' : low ? 'low' : 'ok';
-        const stockTxt = soldOut ? 'Sold Out' : `残り ${maxStock}点`;
-        const curQty   = qtys[sz] || 0;
-
-        return `<div class="sz-row${soldOut ? ' sz-row-soldout' : ''}">
-          <div class="sz-info">
-            <div class="sz-name">${sz}</div>
-            ${dims ? `<div class="sz-dims">${dims}</div>` : ''}
-          </div>
-          <div class="sz-stock ${stockCls}">${stockTxt}</div>
-          <div class="sz-qty-wrap">
-            <button class="sz-qty-btn" data-sz="${sz}" data-dir="-" data-max="${maxStock}" ${soldOut||curQty===0?'disabled':''}>−</button>
-            <span class="sz-qty-val" id="qty_${sz}">${curQty}</span>
-            <button class="sz-qty-btn" data-sz="${sz}" data-dir="+" data-max="${maxStock}" ${soldOut||curQty>=maxStock?'disabled':''}>+</button>
-          </div>
-        </div>`;
-      }).join('');
+    /* qty ボタン bind */
+    function bindQtyBtns() {
+      document.querySelectorAll('#sizeQtyRows .sz-qty-btn').forEach(btn => {
+        btn.onclick = () => {
+          const key = btn.dataset.key;
+          const dir = btn.dataset.dir;
+          const max = parseInt(btn.dataset.max);
+          if (dir === '+' && selectedItems[key] < max) selectedItems[key]++;
+          if (dir === '-' && selectedItems[key] > 0)   selectedItems[key]--;
+          const szId = key.slice(key.indexOf(' / ') + 3).toLowerCase();
+          document.getElementById(`sq_${szId}`).textContent = selectedItems[key];
+          const row = btn.closest('.sz-row');
+          row.querySelector('[data-dir="-"]').disabled = selectedItems[key] === 0;
+          row.querySelector('[data-dir="+"]').disabled = selectedItems[key] >= max;
+          refreshSummary();
+        };
+      });
     }
 
-    /* 初期レンダリング */
+    /* 初期HTML（最初のカラーを自動選択・サイズ表を即時表示） */
     container.innerHTML = `
       <div class="step-section">
         <div class="step-header">
           <span class="step-num">STEP 1</span>
-          <span class="step-label">カラーを選択してください</span>
+          <span class="step-label">カラーを選択してください（複数カラー注文可）</span>
         </div>
         <div class="variant-options" id="colorOpts">
-          ${colors.map(c => `<button class="variant-btn color-btn" data-value="${c}">${c}</button>`).join('')}
+          ${colors.map(c => `<button class="variant-btn color-btn${c === activeColor ? ' selected' : ''}" data-value="${c}">${c}</button>`).join('')}
         </div>
       </div>
-      <div id="sizeStep" style="display:none">
+      <div id="sizeStep">
         <div class="step-header">
           <span class="step-num">STEP 2</span>
-          <span class="step-label">サイズと数量を選択してください</span>
+          <span class="step-label">サイズと数量を入力してください</span>
         </div>
-        <div class="sz-chart" id="sizeQtyRows"></div>
+        <div class="sz-chart" id="sizeQtyRows">
+          ${buildSizeRows(activeColor)}
+        </div>
       </div>`;
 
-    resetCTA('カラーを選択してください');
+    resetCTA('サイズと数量を選択してください');
+    bindQtyBtns();
 
-    /* カラー選択 */
+    /* カラー切替（状態リセットなし・表示切替のみ） */
     container.querySelectorAll('.color-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const color = btn.dataset.value;
+        activeColor = btn.dataset.value;
         container.querySelectorAll('.color-btn').forEach(x => x.classList.remove('selected'));
         btn.classList.add('selected');
-        allSizes.forEach(sz => { qtys[sz] = 0; });
-
-        document.getElementById('sizeStep').style.display = 'block';
-        document.getElementById('sizeQtyRows').innerHTML = buildSizeRows(color);
-        orderSummaryBox.style.display = 'none';
-        ctaStep.style.display = 'none';
-        buyBtn.disabled = true;
-        buyBtn.className = 'buy-btn buy-btn-select';
-        buyBtn.textContent = 'サイズと数量を選択してください';
-        setPrice(basePrice);
-
-        /* qty ボタン */
-        document.querySelectorAll('.sz-qty-btn').forEach(qBtn => {
-          qBtn.onclick = () => {
-            const sz  = qBtn.dataset.sz;
-            const dir = qBtn.dataset.dir;
-            const max = parseInt(qBtn.dataset.max);
-            if (dir === '+' && qtys[sz] < max) qtys[sz]++;
-            if (dir === '-' && qtys[sz] > 0)   qtys[sz]--;
-            document.getElementById(`qty_${sz}`).textContent = qtys[sz];
-            // +/- ボタンの disabled 状態を更新
-            const row = qBtn.closest('.sz-row');
-            row.querySelectorAll('.sz-qty-btn').forEach(b => {
-              if (b.dataset.dir === '-') b.disabled = qtys[sz] === 0;
-              if (b.dataset.dir === '+') b.disabled = qtys[sz] >= max;
-            });
-            refreshSummary(color);
-          };
-        });
+        // 入力済み数量を保持しながらサイズ表を再描画
+        document.getElementById('sizeQtyRows').innerHTML = buildSizeRows(activeColor);
+        bindQtyBtns();
+        refreshSummary();
       });
     });
+
+    buyBtn.onclick = () => {
+      if (buyBtn.disabled) return;
+      const payload = JSON.parse(buyBtn.dataset.orderJson || '{}');
+      console.log('[CIELO] Order payload (Stripe-ready):', payload);
+      // TODO: Stripe checkout session 作成
+      // 在庫減算は Stripe webhook → Supabase Edge Function で処理
+    };
 
   /* ══ Jewelry / Art ══ */
   } else {
@@ -738,18 +772,18 @@ function renderVariants(product, variants) {
           showQty(minStock, qStep);
           activateCTA(qStep + 1);
           setPrice(totalPrice);
-
-          const label = Object.values(selected).map(b => (b.label_ja || b.textContent).trim().replace(/\s+/g, ' ')).join(' / ');
+          const label = Object.values(selected).map(b => (b.textContent || '').trim().replace(/\s+/g, ' ')).join(' / ');
           orderSummaryBox.style.display = 'block';
           document.getElementById('summaryLines').innerHTML =
             `<div class="order-line"><span>${label}</span><span>¥${totalPrice.toLocaleString('ja-JP')}</span></div>`;
           document.getElementById('summaryTotal').textContent = `¥${totalPrice.toLocaleString('ja-JP')}`;
-
           buyBtn.dataset.orderJson = JSON.stringify({
             product_id: product.id,
             items: Object.values(selected).map(b => ({
-              sku: b.dataset.sku, unit_price: basePrice + parseInt(b.dataset.modifier || 0), quantity: qty,
+              variant_id: undefined, sku: b.dataset.sku,
+              unit_price: basePrice + parseInt(b.dataset.modifier || 0), quantity: qty,
             })),
+            total_price: totalPrice,
           });
         } else {
           qtySection.style.display = 'none';
@@ -762,6 +796,11 @@ function renderVariants(product, variants) {
         }
       });
     });
+
+    buyBtn.onclick = () => {
+      if (buyBtn.disabled) return;
+      console.log('[CIELO] Order payload:', JSON.parse(buyBtn.dataset.orderJson || '{}'));
+    };
   }
 
   container.insertAdjacentHTML('beforeend', '<hr class="section-divider">');
