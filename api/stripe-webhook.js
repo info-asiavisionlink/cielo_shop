@@ -29,8 +29,8 @@ function buildOrderConfirmationHtml({ customerName, orderId, items, total }) {
   <tr><td align="center" style="padding:48px 20px;">
     <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
 
-      <tr><td style="padding-bottom:32px;text-align:center;border-bottom:1px solid rgba(200,169,110,0.25);">
-        <p style="margin:0;font-size:22px;font-weight:300;letter-spacing:0.28em;color:#f0f4ff;text-transform:uppercase;">CIELO</p>
+      <tr><td style="padding-bottom:28px;text-align:center;border-bottom:1px solid rgba(200,169,110,0.25);">
+        <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495771/e6azpivui9xg68hr1ria.png" alt="CIELO" style="height:36px;display:block;margin:0 auto;">
       </td></tr>
 
       <tr><td style="padding:36px 0 24px 0;text-align:center;">
