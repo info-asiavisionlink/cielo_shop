@@ -2,6 +2,97 @@
 
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
+const { Resend } = require('resend');
+
+const FROM = 'CIELO <orders@asiavision.link>';
+
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
+
+// ── 注文確認メール HTML
+function buildOrderConfirmationHtml({ customerName, orderId, items, total }) {
+  const itemRows = items.map(item => `
+    <tr>
+      <td style="padding:9px 0;font-size:13px;color:#f0f4ff;border-bottom:1px solid rgba(240,244,255,0.06);">
+        ${item.productName}${item.variantLabel ? ` <span style="color:rgba(240,244,255,0.45);font-size:12px;">/ ${item.variantLabel}</span>` : ''}
+      </td>
+      <td style="padding:9px 0;font-size:13px;color:rgba(240,244,255,0.6);text-align:center;border-bottom:1px solid rgba(240,244,255,0.06);">× ${item.quantity}</td>
+      <td style="padding:9px 0;font-size:13px;color:#f0f4ff;text-align:right;border-bottom:1px solid rgba(240,244,255,0.06);">¥${item.subtotal.toLocaleString('ja-JP')}</td>
+    </tr>`).join('');
+
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#0d0d0d;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0d0d0d;">
+  <tr><td align="center" style="padding:48px 20px;">
+    <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+
+      <tr><td style="padding-bottom:32px;text-align:center;border-bottom:1px solid rgba(200,169,110,0.25);">
+        <p style="margin:0;font-size:22px;font-weight:300;letter-spacing:0.28em;color:#f0f4ff;text-transform:uppercase;">CIELO</p>
+      </td></tr>
+
+      <tr><td style="padding:36px 0 24px 0;text-align:center;">
+        <p style="margin:0 0 10px 0;font-size:10px;font-weight:700;letter-spacing:0.18em;color:#c8a96e;text-transform:uppercase;">Order Confirmed</p>
+        <p style="margin:0;font-size:26px;font-weight:300;color:#f0f4ff;letter-spacing:0.04em;">ご注文ありがとうございます</p>
+      </td></tr>
+
+      <tr><td style="padding-bottom:28px;font-size:14px;color:rgba(240,244,255,0.7);line-height:1.8;">
+        ${customerName ? `${customerName} 様、` : ''}この度はご注文いただきありがとうございます。<br>
+        ご注文内容を受け付けました。発送準備が整い次第、発送通知メールをお送りします。
+      </td></tr>
+
+      <tr><td>
+        <p style="margin:0 0 12px 0;font-size:10px;font-weight:700;letter-spacing:0.14em;color:rgba(240,244,255,0.4);text-transform:uppercase;">Order Items</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <th style="padding-bottom:8px;font-size:11px;font-weight:500;color:rgba(240,244,255,0.35);text-align:left;letter-spacing:0.08em;">商品</th>
+            <th style="padding-bottom:8px;font-size:11px;font-weight:500;color:rgba(240,244,255,0.35);text-align:center;letter-spacing:0.08em;">数量</th>
+            <th style="padding-bottom:8px;font-size:11px;font-weight:500;color:rgba(240,244,255,0.35);text-align:right;letter-spacing:0.08em;">小計</th>
+          </tr>
+          ${itemRows}
+          <tr>
+            <td colspan="2" style="padding:14px 0 0 0;font-size:12px;font-weight:600;letter-spacing:0.08em;color:rgba(240,244,255,0.45);">合計金額</td>
+            <td style="padding:14px 0 0 0;font-size:18px;font-weight:700;color:#f0f4ff;text-align:right;">¥${total.toLocaleString('ja-JP')}</td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <tr><td style="height:28px;"></td></tr>
+      <tr><td style="padding:14px 16px;background:rgba(240,244,255,0.03);border:1px solid rgba(240,244,255,0.07);border-radius:4px;">
+        <p style="margin:0;font-size:12px;color:rgba(240,244,255,0.4);line-height:1.7;">
+          注文ID: <span style="font-family:monospace;color:rgba(240,244,255,0.6);">${orderId.slice(0, 8)}...</span>
+        </p>
+      </td></tr>
+      <tr><td style="height:36px;"></td></tr>
+
+      <tr><td style="padding-top:28px;border-top:1px solid rgba(240,244,255,0.07);text-align:center;">
+        <p style="margin:0 0 6px 0;font-size:11px;letter-spacing:0.12em;color:rgba(240,244,255,0.3);text-transform:uppercase;">CIELO / ASIA VISION LINK</p>
+        <p style="margin:0;font-size:11px;color:rgba(240,244,255,0.2);">お問い合わせ: <a href="mailto:info@asiavision.link" style="color:#c8a96e;text-decoration:none;">info@asiavision.link</a></p>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+}
+
+async function sendOrderConfirmationEmail({ to, customerName, orderId, items, total }) {
+  if (!to || !process.env.RESEND_API_KEY) return;
+  try {
+    const resend = getResend();
+    await resend.emails.send({
+      from: FROM,
+      to: [to],
+      subject: 'ご注文ありがとうございます | CIELO',
+      html: buildOrderConfirmationHtml({ customerName, orderId, items, total }),
+    });
+    console.log(`[CIELO Email] 注文確認メール送信完了: ${to}`);
+  } catch (err) {
+    console.error('[CIELO Email] 注文確認メール送信失敗:', err.message);
+  }
+}
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -81,6 +172,7 @@ async function handleCheckoutCompleted(session) {
   }
 
   // ── ③ order_items insert + 在庫減算
+  const emailItems = [];
   for (const item of items) {
     // バリアント + 商品情報を取得（価格はDB基準で再取得）
     const { data: variant, error: variantError } = await supabase
@@ -128,7 +220,24 @@ async function handleCheckoutCompleted(session) {
     } else if (!decremented) {
       console.warn(`[CIELO Webhook] 在庫不足（購入後検知）: variant ${variant.id}`);
     }
+
+    emailItems.push({
+      productName:  prod?.name  || '',
+      variantLabel: variant.label || '',
+      quantity:     item.quantity,
+      unitPrice:    unitPrice,
+      subtotal:     unitPrice * item.quantity,
+    });
   }
+
+  // ── 注文確認メール送信
+  await sendOrderConfirmationEmail({
+    to:           customerEmail,
+    customerName: customerName,
+    orderId:      order.id,
+    items:        emailItems,
+    total:        session.amount_total,
+  });
 
   console.log(`[CIELO Webhook] 注文完了: order_id=${order.id} email=${customerEmail}`);
 }
