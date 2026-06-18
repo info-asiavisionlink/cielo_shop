@@ -15,43 +15,94 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495771/e6azpivui9xg68hr1ria.png">
   <style>
-    /* ── 数量セレクター ── */
-    .qty-section { margin-bottom: 24px; }
+    /* ── STEP ── */
+    .step-section { margin-bottom: 22px; }
+    .step-header  { margin-bottom: 10px; }
+    .step-num   { display:block; font-size:10px; font-weight:700; letter-spacing:.14em; color:#c8a96e; margin-bottom:3px; }
+    .step-label { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:rgba(240,244,255,.42); }
+
+    /* ── アパレル統合サイズ表 ── */
+    .sz-chart { margin-top:4px; }
+    .sz-row {
+      display:flex; justify-content:space-between; align-items:center; gap:14px;
+      padding:13px 0; border-bottom:1px solid rgba(240,244,255,.06);
+    }
+    .sz-row:first-child { border-top:1px solid rgba(240,244,255,.06); }
+    .sz-row-soldout { opacity:.35; pointer-events:none; }
+    .sz-info { flex:1; min-width:0; }
+    .sz-name  { font-size:13px; font-weight:700; color:#f0f4ff; letter-spacing:.06em; }
+    .sz-dims  { font-size:11px; color:rgba(240,244,255,.36); margin-top:2px; letter-spacing:.02em; }
+    .sz-stock { font-size:11px; white-space:nowrap; }
+    .sz-stock.ok   { color:rgba(240,244,255,.45); }
+    .sz-stock.low  { color:#e8a04a; }
+    .sz-stock.sold { color:rgba(240,244,255,.22); }
+    .sz-qty-wrap {
+      display:flex; align-items:center; flex-shrink:0;
+      border:1px solid rgba(240,244,255,.15); border-radius:4px; overflow:hidden;
+    }
+    .sz-qty-btn {
+      width:34px; height:34px; background:none; border:none;
+      color:rgba(240,244,255,.7); font-size:18px;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:background .15s;
+    }
+    .sz-qty-btn:not(:first-child) { border-left:1px solid rgba(240,244,255,.12); }
+    .sz-qty-btn:hover:not(:disabled) { background:rgba(240,244,255,.06); }
+    .sz-qty-btn:disabled { opacity:.2; cursor:default; }
+    .sz-qty-val { min-width:34px; text-align:center; font-size:14px; font-weight:700; color:#f0f4ff; }
+
+    /* ── 数量（Jewelry/Art 用） ── */
+    .qty-section { margin-bottom:22px; }
     .qty-wrap {
-      display: inline-flex; align-items: center;
-      border: 1px solid rgba(240,244,255,0.15); border-radius: 4px; overflow: hidden;
+      display:inline-flex; align-items:center;
+      border:1px solid rgba(240,244,255,.15); border-radius:4px; overflow:hidden; margin-top:8px;
     }
     .qty-btn {
-      width: 42px; height: 42px; background: none; border: none;
-      color: rgba(240,244,255,0.75); font-size: 20px; line-height: 1;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s;
+      width:42px; height:42px; background:none; border:none;
+      color:rgba(240,244,255,.75); font-size:20px; line-height:1;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:background .15s;
     }
-    .qty-btn:first-child { border-right: 1px solid rgba(240,244,255,0.12); }
-    .qty-btn:last-child  { border-left:  1px solid rgba(240,244,255,0.12); }
-    .qty-btn:hover:not(:disabled) { background: rgba(240,244,255,0.07); }
-    .qty-btn:disabled { opacity: 0.2; cursor: default; }
-    .qty-val {
-      min-width: 54px; text-align: center;
-      font-size: 15px; font-weight: 600; color: #f0f4ff; letter-spacing: 0.05em;
+    .qty-btn:first-child { border-right:1px solid rgba(240,244,255,.12); }
+    .qty-btn:last-child  { border-left:1px solid rgba(240,244,255,.12); }
+    .qty-btn:hover:not(:disabled) { background:rgba(240,244,255,.07); }
+    .qty-btn:disabled { opacity:.2; cursor:default; }
+    .qty-val { min-width:54px; text-align:center; font-size:15px; font-weight:600; color:#f0f4ff; }
+
+    /* ── ORDER SUMMARY ── */
+    .order-summary {
+      background:rgba(240,244,255,.03); border:1px solid rgba(240,244,255,.09);
+      border-radius:6px; padding:16px 18px; margin-bottom:20px;
     }
+    .order-summary-title { display:block; font-size:10px; font-weight:700; letter-spacing:.14em; color:#c8a96e; margin-bottom:12px; }
+    .summary-color { font-size:12px; color:rgba(240,244,255,.42); letter-spacing:.05em; margin-bottom:8px; }
+    .order-line {
+      display:flex; justify-content:space-between; align-items:baseline;
+      font-size:13px; color:rgba(240,244,255,.8); padding:3px 0;
+    }
+    .order-qty-line { font-size:11px; color:rgba(240,244,255,.38); margin-top:6px; padding-top:6px; border-top:1px solid rgba(240,244,255,.07); }
+    .order-total-row {
+      display:flex; justify-content:space-between; align-items:baseline;
+      margin-top:10px; padding-top:10px; border-top:1px solid rgba(240,244,255,.1);
+    }
+    .order-total-label { font-size:11px; color:rgba(240,244,255,.45); letter-spacing:.08em; }
+    .order-total-val   { font-size:18px; font-weight:700; color:#f0f4ff; }
+
     /* ── CTA ── */
     .buy-btn-select {
-      background: none !important; color: rgba(240,244,255,0.25) !important;
-      border: 1px solid rgba(240,244,255,0.1) !important; cursor: default !important;
+      background:none !important; color:rgba(240,244,255,.25) !important;
+      border:1px solid rgba(240,244,255,.1) !important; cursor:default !important;
     }
     .buy-btn-active {
-      background: #c8a96e !important; color: #000 !important;
-      border-color: #c8a96e !important; cursor: pointer !important; opacity: 1 !important;
-      letter-spacing: 0.14em;
+      background:#c8a96e !important; color:#000 !important;
+      border-color:#c8a96e !important; cursor:pointer !important; opacity:1 !important;
+      letter-spacing:.12em;
     }
-    .buy-btn-active:hover { background: #d4b87a !important; }
-    /* ── サイズ在庫ラベル ── */
-    .variant-btn .stock-hint {
-      display: block; font-size: 10px; font-weight: 400;
-      color: rgba(240,244,255,0.45); margin-top: 2px; letter-spacing: 0;
-    }
-    .variant-btn.low-stock .stock-hint { color: #e8a04a; }
+    .buy-btn-active:hover { background:#d4b87a !important; }
+
+    /* ── 旧スタイル互換 ── */
+    .variant-btn .stock-hint { display:block; font-size:10px; font-weight:400; color:rgba(240,244,255,.45); margin-top:2px; }
+    .variant-btn.low-stock .stock-hint { color:#e8a04a; }
   </style>
 </head>
 <body>
@@ -156,9 +207,12 @@
 
       <div id="variantsSection"></div>
 
-      <!-- 数量 -->
+      <!-- 数量（Jewelry / Art 用） -->
       <div id="qtySection" class="qty-section" style="display:none">
-        <p class="variant-label">数量</p>
+        <div class="step-header">
+          <span class="step-num" id="qtyStepNum">STEP 2</span>
+          <span class="step-label">数量を選択してください</span>
+        </div>
         <div class="qty-wrap">
           <button class="qty-btn" id="qtyDown">−</button>
           <span class="qty-val" id="qtyVal">1</span>
@@ -166,8 +220,23 @@
         </div>
       </div>
 
+      <!-- ORDER SUMMARY -->
+      <div id="orderSummaryBox" class="order-summary" style="display:none">
+        <span class="order-summary-title">ORDER SUMMARY</span>
+        <div id="summaryLines"></div>
+        <div class="order-total-row">
+          <span class="order-total-label">合計金額</span>
+          <span class="order-total-val" id="summaryTotal">¥0</span>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div id="ctaStep" class="step-header" style="display:none; margin-bottom:12px">
+        <span class="step-num" id="ctaStepNum">STEP 3</span>
+        <span class="step-label">ご注文へ進む</span>
+      </div>
       <div class="buy-btn-wrap">
-        <button class="buy-btn buy-btn-select" id="buyBtn" disabled>バリアントを選択</button>
+        <button class="buy-btn buy-btn-select" id="buyBtn" disabled>オプションを選択してください</button>
       </div>
 
     </div>
@@ -344,9 +413,10 @@ function renderSpecs(product) {
   /* ── product_specs テーブルから動的生成（新方式） ── */
   const specsArr = (product.product_specs || []).sort((a, b) => a.sort_order - b.sort_order);
   if (specsArr.length) {
-    // アパレルのサイズ表は分けて処理
-    const sizeRows = specsArr.filter(s => /^size_[smxl]+_(length|width|sleeve)$/i.test(s.spec_key));
-    const mainRows = specsArr.filter(s => !/^size_[smxl]+_(length|width|sleeve)$/i.test(s.spec_key));
+    // アパレルのサイズ表は variant UI 内に統合するためここでは除外
+    const isSizeChartKey = s => /^size_[a-z]+_(length|width|sleeve)$/i.test(s.spec_key);
+    const sizeRows = product.category === 'apparel' ? [] : specsArr.filter(isSizeChartKey);
+    const mainRows = specsArr.filter(s => !isSizeChartKey(s));
 
     let html = mainRows.map(s => {
       const label = SPEC_LABEL_MAP[s.spec_key] || s.spec_key;
@@ -412,22 +482,22 @@ function renderSpecs(product) {
 }
 
 function renderVariants(product, variants) {
-  const container  = document.getElementById('variantsSection');
-  const qtySection = document.getElementById('qtySection');
-  const buyBtn     = document.getElementById('buyBtn');
-  const priceEl    = document.getElementById('productPrice');
-  const basePrice  = product.price;
+  const container       = document.getElementById('variantsSection');
+  const qtySection      = document.getElementById('qtySection');
+  const orderSummaryBox = document.getElementById('orderSummaryBox');
+  const buyBtn          = document.getElementById('buyBtn');
+  const ctaStep         = document.getElementById('ctaStep');
+  const priceEl         = document.getElementById('productPrice');
+  const basePrice       = product.price;
   let qty = 1;
 
-  /* ── 価格更新 ── */
-  function updatePrice(modifier) {
-    const total = basePrice + (modifier || 0);
+  function setPrice(total) {
     priceEl.innerHTML = `¥${total.toLocaleString('ja-JP')}<span class="product-price-note">（税込）</span>`;
   }
 
-  /* ── 数量リセット ── */
-  function showQty(maxStock) {
+  function showQty(maxStock, stepNum) {
     qty = 1;
+    document.getElementById('qtyStepNum').textContent = `STEP ${stepNum}`;
     qtySection.style.display = 'block';
     document.getElementById('qtyVal').textContent = '1';
     document.getElementById('qtyDown').disabled = true;
@@ -440,143 +510,255 @@ function renderVariants(product, variants) {
     };
   }
 
-  /* ── CTA 有効化 ── */
-  function activateBuy(modifier, maxStock) {
+  function activateCTA(stepNum) {
     buyBtn.disabled = false;
     buyBtn.className = 'buy-btn buy-btn-active';
     buyBtn.textContent = 'ORDER NOW →';
-    updatePrice(modifier);
-    showQty(maxStock);
+    document.getElementById('ctaStepNum').textContent = `STEP ${stepNum}`;
+    ctaStep.style.display = 'block';
   }
 
-  /* ── CTA 無効化 ── */
-  function deactivateBuy() {
+  function resetCTA(msg) {
     buyBtn.disabled = true;
     buyBtn.className = 'buy-btn buy-btn-select';
-    buyBtn.textContent = 'バリアントを選択';
+    buyBtn.textContent = msg || 'オプションを選択してください';
     qtySection.style.display = 'none';
-    updatePrice(0);
+    orderSummaryBox.style.display = 'none';
+    ctaStep.style.display = 'none';
+    setPrice(basePrice);
   }
 
-  if (!variants.length) { deactivateBuy(); return; }
+  if (!variants.length) { resetCTA('オプションなし'); return; }
 
-  /* ══ Apparel（color_size） ══ */
+  /* ══ Apparel — STEPガイド付き統合サイズ表 ══ */
   if (product.category === 'apparel') {
-    const vMap   = {};  // "Black / S" → variant
-    variants.forEach(v => { vMap[v.label] = v; });
+    qtySection.style.display = 'none';
 
+    const vMap = {};
+    variants.forEach(v => { vMap[v.label] = v; });
     const colors   = [...new Set(variants.map(v => v.label.split(' / ')[0]?.trim()).filter(Boolean))];
     const allSizes = [...new Set(variants.map(v => v.label.split(' / ')[1]?.trim()).filter(Boolean))];
 
+    // product_specs からサイズ寸法を取得
+    const specMap = {};
+    (product.product_specs || []).forEach(s => {
+      if (/^size_[a-z]+_(length|width)$/i.test(s.spec_key)) specMap[s.spec_key] = s.spec_value;
+    });
+
+    const qtys = {};
+    allSizes.forEach(sz => { qtys[sz] = 0; });
+
+    /* サマリー更新 */
+    function refreshSummary(color) {
+      const lines = [];
+      let totalQty = 0, totalPrice = 0;
+      allSizes.forEach(sz => {
+        const q = qtys[sz];
+        if (q > 0) {
+          const v    = vMap[`${color} / ${sz}`];
+          const unit = basePrice + (v?.price_modifier || 0);
+          lines.push({ sz, q, unit, sub: unit * q, v });
+          totalQty += q; totalPrice += unit * q;
+        }
+      });
+
+      if (lines.length === 0) {
+        orderSummaryBox.style.display = 'none';
+        ctaStep.style.display = 'none';
+        buyBtn.disabled = true;
+        buyBtn.className = 'buy-btn buy-btn-select';
+        buyBtn.textContent = 'サイズと数量を選択してください';
+        setPrice(basePrice);
+        return;
+      }
+
+      orderSummaryBox.style.display = 'block';
+      document.getElementById('summaryLines').innerHTML =
+        `<div class="summary-color">${color}</div>` +
+        lines.map(l =>
+          `<div class="order-line"><span>${l.sz} × ${l.q}</span><span>¥${l.sub.toLocaleString('ja-JP')}</span></div>`
+        ).join('') +
+        `<div class="order-line order-qty-line"><span>合計数量</span><span>${totalQty}点</span></div>`;
+      document.getElementById('summaryTotal').textContent = `¥${totalPrice.toLocaleString('ja-JP')}`;
+      setPrice(totalPrice);
+      activateCTA(3);
+
+      buyBtn.dataset.orderJson = JSON.stringify({
+        product_id: product.id,
+        color,
+        items: lines.map(l => ({
+          variant_id: l.v?.id,
+          color,
+          size:       l.sz,
+          quantity:   l.q,
+          sku:        l.v?.sku,
+          unit_price: l.unit,
+          subtotal:   l.sub,
+        })),
+        total_qty:   totalQty,
+        total_price: totalPrice,
+      });
+    }
+
+    /* サイズ行ビルド */
+    function buildSizeRows(color) {
+      return allSizes.map(sz => {
+        const v        = vMap[`${color} / ${sz}`];
+        const soldOut  = !v || v.stock_count === 0;
+        const maxStock = v?.stock_count || 0;
+        const low      = !soldOut && maxStock <= 5;
+        const szKey    = sz.toLowerCase();
+        const len      = specMap[`size_${szKey}_length`];
+        const wid      = specMap[`size_${szKey}_width`];
+        const dims     = [len && `着丈 ${len}cm`, wid && `身幅 ${wid}cm`].filter(Boolean).join('  /  ');
+        const stockCls = soldOut ? 'sold' : low ? 'low' : 'ok';
+        const stockTxt = soldOut ? 'Sold Out' : `残り ${maxStock}点`;
+        const curQty   = qtys[sz] || 0;
+
+        return `<div class="sz-row${soldOut ? ' sz-row-soldout' : ''}">
+          <div class="sz-info">
+            <div class="sz-name">${sz}</div>
+            ${dims ? `<div class="sz-dims">${dims}</div>` : ''}
+          </div>
+          <div class="sz-stock ${stockCls}">${stockTxt}</div>
+          <div class="sz-qty-wrap">
+            <button class="sz-qty-btn" data-sz="${sz}" data-dir="-" data-max="${maxStock}" ${soldOut||curQty===0?'disabled':''}>−</button>
+            <span class="sz-qty-val" id="qty_${sz}">${curQty}</span>
+            <button class="sz-qty-btn" data-sz="${sz}" data-dir="+" data-max="${maxStock}" ${soldOut||curQty>=maxStock?'disabled':''}>+</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    /* 初期レンダリング */
     container.innerHTML = `
-      <div class="variant-section">
-        <p class="variant-label">Color</p>
+      <div class="step-section">
+        <div class="step-header">
+          <span class="step-num">STEP 1</span>
+          <span class="step-label">カラーを選択してください</span>
+        </div>
         <div class="variant-options" id="colorOpts">
           ${colors.map(c => `<button class="variant-btn color-btn" data-value="${c}">${c}</button>`).join('')}
         </div>
       </div>
-      <div class="variant-section">
-        <p class="variant-label">Size</p>
-        <div class="variant-options" id="sizeOpts">
-          ${allSizes.map(s => `<button class="variant-btn size-btn" data-value="${s}" disabled>${s}</button>`).join('')}
+      <div id="sizeStep" style="display:none">
+        <div class="step-header">
+          <span class="step-num">STEP 2</span>
+          <span class="step-label">サイズと数量を選択してください</span>
         </div>
+        <div class="sz-chart" id="sizeQtyRows"></div>
       </div>`;
 
-    deactivateBuy();
+    resetCTA('カラーを選択してください');
 
-    container.querySelectorAll('.color-btn').forEach(colorBtn => {
-      colorBtn.addEventListener('click', () => {
-        const color = colorBtn.dataset.value;
+    /* カラー選択 */
+    container.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const color = btn.dataset.value;
         container.querySelectorAll('.color-btn').forEach(x => x.classList.remove('selected'));
-        colorBtn.classList.add('selected');
-        deactivateBuy();
+        btn.classList.add('selected');
+        allSizes.forEach(sz => { qtys[sz] = 0; });
 
-        container.querySelectorAll('.size-btn').forEach(sBtn => {
-          const sz = sBtn.dataset.value;
-          const v  = vMap[`${color} / ${sz}`];
-          sBtn.classList.remove('selected', 'sold-out', 'low-stock');
+        document.getElementById('sizeStep').style.display = 'block';
+        document.getElementById('sizeQtyRows').innerHTML = buildSizeRows(color);
+        orderSummaryBox.style.display = 'none';
+        ctaStep.style.display = 'none';
+        buyBtn.disabled = true;
+        buyBtn.className = 'buy-btn buy-btn-select';
+        buyBtn.textContent = 'サイズと数量を選択してください';
+        setPrice(basePrice);
 
-          if (!v || v.stock_count === 0) {
-            sBtn.disabled = true;
-            sBtn.classList.add('sold-out');
-            sBtn.innerHTML = `${sz}<span class="stock-hint">Sold Out</span>`;
-          } else {
-            sBtn.disabled = false;
-            const lowStock = v.stock_count <= 5;
-            if (lowStock) sBtn.classList.add('low-stock');
-            sBtn.innerHTML = `${sz}<span class="stock-hint">在庫${v.stock_count}</span>`;
-          }
+        /* qty ボタン */
+        document.querySelectorAll('.sz-qty-btn').forEach(qBtn => {
+          qBtn.onclick = () => {
+            const sz  = qBtn.dataset.sz;
+            const dir = qBtn.dataset.dir;
+            const max = parseInt(qBtn.dataset.max);
+            if (dir === '+' && qtys[sz] < max) qtys[sz]++;
+            if (dir === '-' && qtys[sz] > 0)   qtys[sz]--;
+            document.getElementById(`qty_${sz}`).textContent = qtys[sz];
+            // +/- ボタンの disabled 状態を更新
+            const row = qBtn.closest('.sz-row');
+            row.querySelectorAll('.sz-qty-btn').forEach(b => {
+              if (b.dataset.dir === '-') b.disabled = qtys[sz] === 0;
+              if (b.dataset.dir === '+') b.disabled = qtys[sz] >= max;
+            });
+            refreshSummary(color);
+          };
         });
       });
     });
 
-    container.querySelectorAll('.size-btn').forEach(sBtn => {
-      sBtn.addEventListener('click', () => {
-        if (sBtn.disabled) return;
-        const colorBtn = container.querySelector('.color-btn.selected');
-        if (!colorBtn) return;
-        const v = vMap[`${colorBtn.dataset.value} / ${sBtn.dataset.value}`];
-        container.querySelectorAll('.size-btn').forEach(x => x.classList.remove('selected'));
-        sBtn.classList.add('selected');
-        if (v) activateBuy(v.price_modifier || 0, v.stock_count);
-      });
-    });
-
-  /* ══ Jewelry / Art（ring_size, chain_length, size, frame, length） ══ */
+  /* ══ Jewelry / Art ══ */
   } else {
-    const byType    = {};
+    const byType   = {};
     variants.forEach(v => { (byType[v.type] = byType[v.type] || []).push(v); });
-    const typeKeys  = Object.keys(byType);
-    const selections = {};  // type → variant
+    const typeKeys = Object.keys(byType);
+    const selected = {};
 
-    const labelMap = {
-      size: 'Size', length: 'Length', frame: 'Frame',
-      ring_size: 'Ring Size', chain_length: 'Chain Length',
-    };
+    const labelMap = { size:'Size', length:'Length', frame:'Frame', ring_size:'Ring Size', chain_length:'Chain Length' };
 
-    let html = '';
+    let stepNum = 1, html = '';
     typeKeys.forEach(type => {
       const list = byType[type].sort((a, b) => a.sort_order - b.sort_order);
-      html += `<div class="variant-section">
-        <p class="variant-label">${labelMap[type] || type}</p>
+      html += `<div class="step-section">
+        <div class="step-header">
+          <span class="step-num">STEP ${stepNum++}</span>
+          <span class="step-label">${labelMap[type] || type} を選択してください</span>
+        </div>
         <div class="variant-options" data-vtype="${type}">
           ${list.map(v => {
-            const stockHint = v.stock_count === 0
-              ? `<span class="stock-hint">Sold Out</span>`
-              : `<span class="stock-hint">在庫${v.stock_count}</span>`;
-            const priceNote = v.price_modifier > 0
-              ? `<small>+¥${v.price_modifier.toLocaleString('ja-JP')}</small> ` : '';
-            const lowCls = v.stock_count > 0 && v.stock_count <= 5 ? ' low-stock' : '';
-            return `<button
-              class="variant-btn${v.stock_count===0?' sold-out':''}${lowCls}"
-              data-sku="${v.sku}"
-              data-stock="${v.stock_count}"
-              data-modifier="${v.price_modifier}"
-              data-vtype="${type}"
+            const st    = v.stock_count === 0 ? `<span class="stock-hint">Sold Out</span>` : `<span class="stock-hint">残り ${v.stock_count}点</span>`;
+            const pr    = v.price_modifier > 0 ? `<small>+¥${v.price_modifier.toLocaleString('ja-JP')}</small> ` : '';
+            const lowCl = v.stock_count > 0 && v.stock_count <= 5 ? ' low-stock' : '';
+            return `<button class="variant-btn${v.stock_count===0?' sold-out':''}${lowCl}"
+              data-sku="${v.sku}" data-stock="${v.stock_count}"
+              data-modifier="${v.price_modifier}" data-vtype="${type}"
               ${v.stock_count===0?'disabled':''}>
-              ${priceNote}${v.label_ja || v.label}${stockHint}
-            </button>`;
+              ${pr}${v.label_ja || v.label}${st}</button>`;
           }).join('')}
         </div>
       </div>`;
     });
     container.innerHTML = html;
-
-    deactivateBuy();
+    resetCTA('オプションを選択してください');
 
     container.querySelectorAll('.variant-btn:not([disabled])').forEach(btn => {
       btn.addEventListener('click', () => {
         const type = btn.dataset.vtype;
         btn.closest('.variant-options').querySelectorAll('.variant-btn').forEach(x => x.classList.remove('selected'));
         btn.classList.add('selected');
-        selections[type] = btn;
+        selected[type] = btn;
 
-        if (Object.keys(selections).length === typeKeys.length) {
-          const totalModifier = Object.values(selections).reduce((s, b) => s + parseInt(b.dataset.modifier || 0), 0);
-          const minStock      = Math.min(...Object.values(selections).map(b => parseInt(b.dataset.stock || 0)));
-          activateBuy(totalModifier, minStock);
+        if (Object.keys(selected).length === typeKeys.length) {
+          const totalMod   = Object.values(selected).reduce((s, b) => s + parseInt(b.dataset.modifier || 0), 0);
+          const minStock   = Math.min(...Object.values(selected).map(b => parseInt(b.dataset.stock || 0)));
+          const totalPrice = basePrice + totalMod;
+          const qStep      = typeKeys.length + 1;
+          showQty(minStock, qStep);
+          activateCTA(qStep + 1);
+          setPrice(totalPrice);
+
+          const label = Object.values(selected).map(b => (b.label_ja || b.textContent).trim().replace(/\s+/g, ' ')).join(' / ');
+          orderSummaryBox.style.display = 'block';
+          document.getElementById('summaryLines').innerHTML =
+            `<div class="order-line"><span>${label}</span><span>¥${totalPrice.toLocaleString('ja-JP')}</span></div>`;
+          document.getElementById('summaryTotal').textContent = `¥${totalPrice.toLocaleString('ja-JP')}`;
+
+          buyBtn.dataset.orderJson = JSON.stringify({
+            product_id: product.id,
+            items: Object.values(selected).map(b => ({
+              sku: b.dataset.sku, unit_price: basePrice + parseInt(b.dataset.modifier || 0), quantity: qty,
+            })),
+          });
         } else {
-          deactivateBuy();
+          qtySection.style.display = 'none';
+          orderSummaryBox.style.display = 'none';
+          ctaStep.style.display = 'none';
+          buyBtn.disabled = true;
+          buyBtn.className = 'buy-btn buy-btn-select';
+          buyBtn.textContent = 'オプションを選択してください';
+          setPrice(basePrice);
         }
       });
     });
