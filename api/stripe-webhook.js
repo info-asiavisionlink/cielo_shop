@@ -4,7 +4,7 @@ const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
 const { Resend } = require('resend');
 
-const FROM = 'CIELO <orders@asiavision.link>';
+const FROM = 'CIELO <orders@mail.asia-link-ai.com>';
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY);
