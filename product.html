@@ -504,9 +504,7 @@ function renderVariants(product, variants) {
             sBtn.disabled = false;
             const lowStock = v.stock_count <= 5;
             if (lowStock) sBtn.classList.add('low-stock');
-            sBtn.innerHTML = lowStock
-              ? `${sz}<span class="stock-hint">残り${v.stock_count}</span>`
-              : sz;
+            sBtn.innerHTML = `${sz}<span class="stock-hint">在庫${v.stock_count}</span>`;
           }
         });
       });
@@ -545,9 +543,7 @@ function renderVariants(product, variants) {
           ${list.map(v => {
             const stockHint = v.stock_count === 0
               ? `<span class="stock-hint">Sold Out</span>`
-              : v.stock_count <= 5
-                ? `<span class="stock-hint">残り${v.stock_count}</span>`
-                : '';
+              : `<span class="stock-hint">在庫${v.stock_count}</span>`;
             const priceNote = v.price_modifier > 0
               ? `<small>+¥${v.price_modifier.toLocaleString('ja-JP')}</small> ` : '';
             const lowCls = v.stock_count > 0 && v.stock_count <= 5 ? ' low-stock' : '';
