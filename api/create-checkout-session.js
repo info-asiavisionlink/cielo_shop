@@ -125,7 +125,6 @@ module.exports = async function handler(req, res) {
 
     validatedItems.push({
       variantId: variant.id,
-      productId: product.id,
       quantity:  item.quantity,
     });
   }
