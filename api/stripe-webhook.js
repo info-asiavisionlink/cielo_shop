@@ -63,6 +63,8 @@ async function handleCheckoutCompleted(session) {
       stripe_session_id:        session.id,
       stripe_payment_intent_id: session.payment_intent || null,
       customer_id:              customerId,
+      customer_name:            customerName,
+      customer_email:           customerEmail,
       status:                   'paid',
       subtotal:                 session.amount_subtotal  ?? session.amount_total,
       tax:                      session.total_details?.amount_tax ?? 0,

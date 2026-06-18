@@ -49,12 +49,16 @@ CREATE TABLE orders (
   stripe_session_id         TEXT         UNIQUE NOT NULL,
   stripe_payment_intent_id  TEXT         UNIQUE,
   customer_id               UUID         REFERENCES customers(id),
+  customer_name             TEXT,                            -- ダッシュボード表示用（スナップショット）
+  customer_email            TEXT,                            -- ダッシュボード表示用（スナップショット）
   status                    order_status NOT NULL DEFAULT 'pending',
   subtotal                  INTEGER      NOT NULL,           -- JPY
   tax                       INTEGER      NOT NULL DEFAULT 0, -- JPY
   total                     INTEGER      NOT NULL,           -- JPY 税込
   currency                  TEXT         NOT NULL DEFAULT 'jpy',
   shipping_address          JSONB,
+  tracking_number           TEXT,                            -- 発送追跡番号
+  notes                     TEXT,                            -- 管理者メモ
   created_at                TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at                TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
