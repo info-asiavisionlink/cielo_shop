@@ -21,6 +21,7 @@ DROP TYPE  IF EXISTS order_status;
 CREATE TYPE order_status AS ENUM (
   'pending',    -- 決済前
   'paid',       -- 決済完了
+  'processing', -- 梱包中
   'shipped',    -- 発送済み
   'delivered',  -- 配達完了
   'cancelled',  -- キャンセル
