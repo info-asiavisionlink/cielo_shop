@@ -30,7 +30,7 @@ function buildOrderConfirmationHtml({ customerName, orderId, items, total }) {
     <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
 
       <tr><td style="padding-bottom:28px;text-align:center;border-bottom:1px solid rgba(200,169,110,0.25);">
-        <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO" style="height:36px;display:block;margin:0 auto;">
+        <img src="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495769/fzzxktjm2c5feemspvqu.png" alt="CIELO" style="height:72px;display:block;margin:0 auto;">
       </td></tr>
 
       <tr><td style="padding:36px 0 24px 0;text-align:center;">
