@@ -119,10 +119,19 @@ function getRawBody(req) {
 async function handleCheckoutCompleted(session) {
   const supabase = getSupabase();
 
-  const { productId, productSlug, itemsJson } = session.metadata || {};
+  const { itemsJson } = session.metadata || {};
   let items = [];
-  try { items = itemsJson ? JSON.parse(itemsJson) : []; }
-  catch { console.error('[CIELO Webhook] itemsJson parse error'); return; }
+  try {
+    const raw = itemsJson ? JSON.parse(itemsJson) : [];
+    // Support both compact format {p,v,q,et,e} and legacy format {productId,variantId,...}
+    items = raw.map(i => ({
+      productId:     i.p  || i.productId  || null,
+      variantId:     i.v  || i.variantId  || null,
+      quantity:      i.q  || i.quantity   || 1,
+      engravingType: i.et || i.engravingType || null,
+      engraving:     i.e  || i.engraving  || null,
+    }));
+  } catch { console.error('[CIELO Webhook] itemsJson parse error'); return; }
 
   const customerEmail = session.customer_details?.email || null;
   const customerName  = session.customer_details?.name  || null;
@@ -190,37 +199,56 @@ async function handleCheckoutCompleted(session) {
   // ── ③ order_items insert + 在庫減算
   const emailItems = [];
   for (const item of items) {
-    const { data: variant, error: variantError } = await supabase
-      .from('product_variants')
-      .select('id, product_id, label, sku, price_modifier, products(name, slug, price)')
-      .eq('id', item.variantId)
-      .single();
+    // Fetch product directly (supports no-variant orders)
+    let prod, unitPrice;
+    if (item.variantId) {
+      const { data: variant, error: variantError } = await supabase
+        .from('product_variants')
+        .select('id, product_id, label, sku, price_modifier, products(name, slug, price)')
+        .eq('id', item.variantId)
+        .single();
+      if (variantError || !variant) {
+        console.error('[CIELO Webhook] variant not found:', item.variantId);
+        continue;
+      }
+      prod      = variant.products;
+      unitPrice = (prod?.price || 0) + (variant.price_modifier || 0);
 
-    if (variantError || !variant) {
-      console.error('[CIELO Webhook] variant not found:', item.variantId);
+      // Reconstruct variant reference for order_items
+      item._variant = variant;
+    } else if (item.productId) {
+      const { data: product } = await supabase
+        .from('products')
+        .select('name, slug, price')
+        .eq('id', item.productId)
+        .single();
+      prod      = product;
+      unitPrice = prod?.price || 0;
+    } else {
+      console.error('[CIELO Webhook] no productId or variantId in item');
       continue;
     }
 
-    const prod      = variant.products;
-    const unitPrice = (prod?.price || 0) + (variant.price_modifier || 0);
-
-    // engraving_text: items JSON から取得（null の場合は刻印なし）
     const engravingText = (typeof item.engraving === 'string' && item.engraving.trim())
-      ? item.engraving.trim()
-      : null;
+      ? item.engraving.trim() : null;
+    const engravingType = (item.engravingType && item.engravingType !== 'none')
+      ? item.engravingType : null;
+
+    const variant = item._variant || null;
 
     const { error: itemError } = await supabase
       .from('order_items')
       .insert({
         order_id:      order.id,
-        product_id:    variant.product_id,
-        variant_id:    variant.id,
+        product_id:    variant ? variant.product_id : item.productId,
+        variant_id:    variant ? variant.id         : null,
         product_name:  prod?.name  || '',
-        product_slug:  prod?.slug  || productSlug || '',
-        variant_label: variant.label,
+        product_slug:  prod?.slug  || '',
+        variant_label: variant ? variant.label       : null,
         unit_price:    unitPrice,
         quantity:      item.quantity,
         subtotal:      unitPrice * item.quantity,
+        engraving_type: engravingType,
         engraving_text: engravingText,
       });
 
@@ -228,23 +256,24 @@ async function handleCheckoutCompleted(session) {
       console.error('[CIELO Webhook] order_items insert error:', itemError.message);
     }
 
-    // 在庫原子的減算
-    const { data: decremented, error: stockError } = await supabase
-      .rpc('decrement_stock', {
-        p_variant_id: variant.id,
-        p_quantity:   item.quantity,
-      });
-
-    if (stockError) {
-      console.error('[CIELO Webhook] decrement_stock error:', stockError.message);
-    } else if (!decremented) {
-      console.warn(`[CIELO Webhook] 在庫不足（購入後検知）: variant ${variant.id}`);
+    // 在庫原子的減算（バリアントがある場合のみ）
+    if (variant) {
+      const { data: decremented, error: stockError } = await supabase
+        .rpc('decrement_stock', {
+          p_variant_id: variant.id,
+          p_quantity:   item.quantity,
+        });
+      if (stockError) {
+        console.error('[CIELO Webhook] decrement_stock error:', stockError.message);
+      } else if (!decremented) {
+        console.warn(`[CIELO Webhook] 在庫不足（購入後検知）: variant ${variant.id}`);
+      }
     }
 
     emailItems.push({
-      productName:   prod?.name    || '',
-      variantLabel:  variant.label || '',
-      engravingText: engravingText || null,
+      productName:   prod?.name             || '',
+      variantLabel:  variant?.label         || '',
+      engravingText: engravingText          || null,
       quantity:      item.quantity,
       unitPrice:     unitPrice,
       subtotal:      unitPrice * item.quantity,

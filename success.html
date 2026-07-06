@@ -193,10 +193,14 @@
   © 2025 CIELO / ASIA VISION LINK. All rights reserved.
 </footer>
 
+<script src="cart.js"></script>
 <script>
   const sessionId = new URLSearchParams(window.location.search).get('session_id');
   if (sessionId) {
-    document.getElementById('sessionId').textContent = `Order ref: ${sessionId}`;
+    document.getElementById('sessionId').textContent = 'Order ref: ' + sessionId;
+    // Clear cart after successful checkout
+    if (window.CieloCart) window.CieloCart.clearCart();
+    else try { localStorage.removeItem('cielo_cart_v1'); } catch(e) {}
   }
 </script>
 </body>

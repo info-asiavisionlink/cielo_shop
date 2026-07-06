@@ -3,10 +3,7 @@
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
 
-function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY);
-}
-
+function getStripe()   { return new Stripe(process.env.STRIPE_SECRET_KEY); }
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -26,26 +23,34 @@ function parseBody(req) {
   });
 }
 
-// ── 刻印テキストのサーバーサイドバリデーション
-function validateEngraving(raw, maxChars) {
-  if (raw === null || raw === undefined || raw === '') return null;
-  if (typeof raw !== 'string') throw new Error('刻印内容の形式が不正です');
+/* ── Engraving server-side validation ── */
+function validateEngraving(rawText, rawType, maxChars, engAvail, engRequired) {
+  // Non-engraving product: discard any client-sent engraving silently
+  if (!engAvail) return { type: null, text: null };
 
-  // trim（前後空白のみ除去）
-  let val = raw.trim();
-  if (!val) return null;
+  const type = rawType || null;
+  if (!type || type === 'none') return { type: null, text: null };
 
-  // 制御文字・改行除去
-  val = val.replace(/[\x00-\x1F\x7F]/g, '');
-  // HTML タグ除去
-  val = val.replace(/<[^>]*>/g, '');
+  // Validate type value
+  const VALID_TYPES = ['personal_mark', 'date', 'short_message'];
+  if (!VALID_TYPES.includes(type)) {
+    throw new Error('不正な刻印タイプです');
+  }
 
-  const limit = Math.min(maxChars || 20, 50); // DB上限50字
-  if (val.length > limit) {
+  let text = typeof rawText === 'string' ? rawText.trim() : '';
+  // Strip control chars + HTML tags
+  text = text.replace(/[\x00-\x1F\x7F]/g, '').replace(/<[^>]*>/g, '').trim();
+
+  if (engRequired && !text) {
+    throw new Error('刻印内容を入力してください');
+  }
+
+  const limit = Math.min(maxChars || 20, 50);
+  if (text.length > limit) {
     throw new Error(`刻印は${limit}文字以内で入力してください`);
   }
 
-  return val || null;
+  return { type, text: text || null };
 }
 
 module.exports = async function handler(req, res) {
@@ -54,25 +59,20 @@ module.exports = async function handler(req, res) {
   }
 
   let body;
-  try {
-    body = await parseBody(req);
-  } catch {
-    return res.status(400).json({ error: 'リクエストの形式が不正です' });
-  }
+  try { body = await parseBody(req); }
+  catch { return res.status(400).json({ error: 'リクエストの形式が不正です' }); }
 
-  const { productId, productSlug, items } = body;
+  const { items } = body;
 
-  // ── 入力バリデーション
-  if (!productId || !Array.isArray(items) || items.length === 0 || items.length > 20) {
+  // ── Input validation
+  if (!Array.isArray(items) || items.length === 0 || items.length > 20) {
     return res.status(400).json({ error: '不正なリクエストです' });
   }
   for (const item of items) {
     if (
-      !item.variantId ||
-      typeof item.variantId !== 'string' ||
+      !item.productId || typeof item.productId !== 'string' ||
       !Number.isInteger(item.quantity) ||
-      item.quantity < 1 ||
-      item.quantity > 99
+      item.quantity < 1 || item.quantity > 99
     ) {
       return res.status(400).json({ error: '不正なアイテムです' });
     }
@@ -80,89 +80,81 @@ module.exports = async function handler(req, res) {
 
   const supabase = getSupabase();
   const stripe   = getStripe();
-
-  // ── 商品情報をサーバーサイドで取得
-  // * で全カラムを取得 — マイグレーション前後どちらでも安全に動作する
-  // engraving_* カラムはマイグレーション前は undefined → ?? でデフォルト値にフォールバック
-  const { data: product, error: productError } = await supabase
-    .from('products')
-    .select('*, product_images(image_url, is_thumbnail)')
-    .eq('id', productId)
-    .single();
-
-  if (productError || !product) {
-    return res.status(404).json({ error: '商品が見つかりません' });
-  }
-  if (product.status !== 'active') {
-    return res.status(400).json({ error: 'この商品は現在購入できません' });
-  }
-
-  // ── 刻印バリデーション（サーバーサイド）
-  // 全 items から刻印テキストを取得して検証
-  // マイグレーション前は undefined → false / 20 にフォールバック
-  const maxC     = product.engraving_max_chars  ?? 20;
-  const validatedEngravings = [];
+  const lineItems      = [];
+  const validatedItems = [];
 
   for (const item of items) {
-    let engText = null;
+    // ── Fetch product (server-side; never trust client price)
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('*, product_images(image_url, is_thumbnail)')
+      .eq('id', item.productId)
+      .single();
+
+    if (productError || !product) {
+      return res.status(404).json({ error: '商品が見つかりません: ' + item.productId });
+    }
+    if (product.status !== 'active') {
+      return res.status(400).json({ error: 'この商品は現在購入できません: ' + product.name });
+    }
+
+    const thumbnail = product.product_images?.find(i => i.is_thumbnail)?.image_url || null;
+    const images    = thumbnail ? [thumbnail] : [];
+
+    // ── Engraving validation (server-side)
+    let engravingType = null;
+    let engravingText = null;
+    const engAvail    = product.engraving_available ?? false;
+    const engRequired = product.engraving_required  ?? false;
+    const maxChars    = product.engraving_max_chars  ?? 20;
+
     try {
-      engText = validateEngraving(item.engraving, maxC);
+      const eng = validateEngraving(
+        item.engravingText, item.engravingType,
+        maxChars, engAvail, engRequired
+      );
+      engravingType = eng.type;
+      engravingText = eng.text;
     } catch (e) {
       return res.status(400).json({ error: e.message });
     }
 
-    // マイグレーション前は engraving_available が undefined → false 扱い
-    const engAvail    = product.engraving_available ?? false;
-    const engRequired = product.engraving_required  ?? false;
+    // ── Variant validation (optional; some products have no variants)
+    let unitAmount = product.price;
 
-    // 必須チェック
-    if (engAvail && engRequired && !engText) {
-      return res.status(400).json({ error: '刻印内容を入力してください' });
-    }
-    // 非対応商品に刻印を送ってきた場合は無視（不正ではないが保存しない）
-    if (!engAvail) {
-      engText = null;
-    }
-    validatedEngravings.push(engText);
-  }
+    if (item.variantId) {
+      const { data: variant, error: variantError } = await supabase
+        .from('product_variants')
+        .select('id, product_id, label, stock_count, price_modifier, sku')
+        .eq('id', item.variantId)
+        .single();
 
-  const thumbnail = product.product_images?.find(i => i.is_thumbnail)?.image_url || null;
-  const images = thumbnail ? [thumbnail] : [];
-
-  // ── バリアントごとに検証・価格算出
-  const lineItems      = [];
-  const validatedItems = [];
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    const { data: variant, error: variantError } = await supabase
-      .from('product_variants')
-      .select('id, product_id, label, stock_count, price_modifier, sku')
-      .eq('id', item.variantId)
-      .single();
-
-    if (variantError || !variant) {
-      return res.status(404).json({ error: 'バリアントが見つかりません' });
-    }
-    if (variant.product_id !== productId) {
-      return res.status(400).json({ error: '不正なバリアントです' });
-    }
-    if (variant.stock_count < item.quantity) {
-      return res.status(400).json({ error: `在庫が不足しています: ${variant.label}` });
+      if (variantError || !variant) {
+        return res.status(404).json({ error: 'バリアントが見つかりません' });
+      }
+      if (variant.product_id !== item.productId) {
+        return res.status(400).json({ error: '不正なバリアントです' });
+      }
+      if (variant.stock_count < item.quantity) {
+        return res.status(400).json({ error: `在庫が不足しています: ${variant.label}` });
+      }
+      unitAmount = product.price + (variant.price_modifier || 0);
     }
 
-    const unitAmount   = product.price + (variant.price_modifier || 0);
-    const engravingText = validatedEngravings[i];
+    // Build product name for Stripe line item
+    const lineItemName = item.variantId
+      ? `${product.name} — ${(await supabase.from('product_variants').select('label').eq('id', item.variantId).single()).data?.label || ''}`
+      : product.name;
 
     lineItems.push({
       price_data: {
-        currency: 'jpy',
+        currency:     'jpy',
         product_data: {
-          name: `${product.name} — ${variant.label}`,
+          name:   lineItemName,
           images,
           metadata: {
-            sku:       variant.sku,
-            engraving: engravingText || '',
+            engraving_type: engravingType || '',
+            engraving_text: engravingText || '',
           },
         },
         unit_amount: unitAmount,
@@ -171,17 +163,16 @@ module.exports = async function handler(req, res) {
     });
 
     validatedItems.push({
-      variantId: variant.id,
-      quantity:  item.quantity,
-      engraving: engravingText || null,
+      p:  item.productId,
+      v:  item.variantId || '',
+      q:  item.quantity,
+      et: engravingType || '',
+      e:  engravingText || '',
     });
   }
 
-  // ── Stripe Checkout Session 作成
-  const baseUrl   = process.env.BASE_URL || `https://${req.headers.host}`;
-  const cancelUrl = productSlug
-    ? `${baseUrl}/product.html?slug=${encodeURIComponent(productSlug)}`
-    : `${baseUrl}/index.html`;
+  // ── Stripe Checkout Session
+  const baseUrl = process.env.BASE_URL || `https://${req.headers.host}`;
 
   let session;
   try {
@@ -190,11 +181,10 @@ module.exports = async function handler(req, res) {
       line_items:                   lineItems,
       mode:                         'payment',
       success_url:                  `${baseUrl}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:                   cancelUrl,
+      cancel_url:                   `${baseUrl}/index.html`,
       metadata: {
-        productId,
-        productSlug: productSlug || '',
-        itemsJson:   JSON.stringify(validatedItems),
+        // Compact format to stay within 500-char limit
+        itemsJson: JSON.stringify(validatedItems),
       },
       billing_address_collection:  'required',
       shipping_address_collection: { allowed_countries: ['JP'] },

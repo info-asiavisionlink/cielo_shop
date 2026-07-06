@@ -1686,3 +1686,576 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
   .hi-sub { letter-spacing: 0.38em; text-indent: 0.38em; }
   .hi-scroll { bottom: 32px; }
 }
+
+/* ============================================
+   CART ICON — Header
+   ============================================ */
+.cart-icon-btn {
+  display:         inline-flex;
+  align-items:     center;
+  gap:             6px;
+  background:      none;
+  border:          none;
+  cursor:          pointer;
+  color:           var(--text-secondary);
+  padding:         4px 0;
+  transition:      color var(--trans);
+  position:        relative;
+}
+.cart-icon-btn:hover { color: var(--diamond); }
+
+.cart-count {
+  font-family:    var(--font);
+  font-size:      10px;
+  font-weight:    600;
+  letter-spacing: 0.04em;
+  color:          var(--diamond);
+  min-width:      14px;
+  text-align:     center;
+}
+
+.cart-icon-mobile {
+  display: none;
+}
+
+/* ============================================
+   CART OVERLAY
+   ============================================ */
+.cart-overlay {
+  position:   fixed;
+  inset:      0;
+  background: rgba(0, 0, 0, 0);
+  z-index:    1100;
+  pointer-events: none;
+  transition: background 0.35s ease;
+}
+.cart-overlay.open {
+  pointer-events: all;
+  background:     rgba(0, 0, 0, 0.55);
+}
+
+/* ============================================
+   CART DRAWER
+   ============================================ */
+.cart-open { overflow: hidden; }
+
+#cartDrawer {
+  position:     fixed;
+  top:          0; right: 0; bottom: 0;
+  width:        min(420px, 100vw);
+  background:   var(--dark-1);
+  border-left:  1px solid var(--border);
+  z-index:      1200;
+  display:      flex;
+  flex-direction: column;
+  transform:    translateX(100%);
+  transition:   transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change:  transform;
+}
+#cartDrawer.open { transform: translateX(0); }
+
+.cart-drawer-header {
+  display:      flex;
+  align-items:  center;
+  justify-content: space-between;
+  padding:      24px 24px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink:  0;
+}
+.cart-drawer-title {
+  font-family:    var(--font-display);
+  font-size:      11px;
+  font-weight:    600;
+  letter-spacing: 0.25em;
+  color:          var(--diamond);
+  text-transform: uppercase;
+}
+.cart-drawer-close {
+  font-size:   20px;
+  line-height: 1;
+  color:       var(--text-muted);
+  cursor:      pointer;
+  padding:     4px;
+  transition:  color var(--trans);
+}
+.cart-drawer-close:hover { color: var(--diamond); }
+
+.cart-drawer-body {
+  flex:         1;
+  overflow-y:   auto;
+  padding:      8px 0;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.cart-drawer-footer {
+  padding:      20px 24px 32px;
+  border-top:   1px solid var(--border);
+  flex-shrink:  0;
+}
+
+/* ── Cart Item ── */
+.cart-item {
+  display:     flex;
+  gap:         14px;
+  padding:     16px 24px;
+  border-bottom: 1px solid var(--border);
+  position:    relative;
+}
+.cart-item:last-child { border-bottom: none; }
+
+.cart-item-img {
+  flex-shrink: 0;
+  width:       72px;
+  height:      88px;
+  overflow:    hidden;
+  background:  var(--dark-3);
+  display:     block;
+}
+.cart-item-img img {
+  width:       100%;
+  height:      100%;
+  object-fit:  cover;
+}
+.cart-item-img-placeholder {
+  width:       100%;
+  height:      100%;
+  display:     flex;
+  align-items: center;
+  justify-content: center;
+  font-size:   9px;
+  letter-spacing: 0.2em;
+  color:       var(--text-muted);
+}
+
+.cart-item-info  { flex: 1; min-width: 0; }
+.cart-item-name  {
+  display:        block;
+  font-size:      12px;
+  font-weight:    500;
+  color:          var(--diamond);
+  letter-spacing: 0.08em;
+  margin-bottom:  4px;
+  white-space:    nowrap;
+  overflow:       hidden;
+  text-overflow:  ellipsis;
+}
+.cart-item-meta  {
+  font-size:      11px;
+  color:          var(--text-muted);
+  letter-spacing: 0.06em;
+  margin-bottom:  4px;
+}
+.cart-item-inscription {
+  font-size:      10px;
+  color:          var(--gold);
+  letter-spacing: 0.06em;
+  margin-bottom:  6px;
+  font-style:     italic;
+}
+.cart-item-price {
+  font-size:      13px;
+  color:          var(--gold);
+  font-weight:    400;
+  letter-spacing: 0.06em;
+  margin-bottom:  10px;
+}
+
+.cart-item-qty {
+  display:      flex;
+  align-items:  center;
+  gap:          0;
+  border:       1px solid var(--border);
+  width:        fit-content;
+}
+.cart-qty-btn {
+  width:        28px;
+  height:       28px;
+  font-size:    16px;
+  line-height:  1;
+  color:        var(--text-secondary);
+  display:      flex;
+  align-items:  center;
+  justify-content: center;
+  transition:   background 0.15s;
+}
+.cart-qty-btn:hover { background: rgba(240,244,255,0.06); color: var(--diamond); }
+.cart-qty-val {
+  min-width:      32px;
+  text-align:     center;
+  font-size:      13px;
+  font-weight:    600;
+  color:          var(--diamond);
+  border-left:    1px solid var(--border);
+  border-right:   1px solid var(--border);
+  line-height:    28px;
+}
+
+.cart-item-remove {
+  position:   absolute;
+  top:        14px;
+  right:      20px;
+  font-size:  16px;
+  color:      var(--text-muted);
+  cursor:     pointer;
+  line-height: 1;
+  padding:    4px;
+  transition: color 0.15s;
+}
+.cart-item-remove:hover { color: var(--diamond); }
+
+/* ── Cart Empty ── */
+.cart-empty {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  height:          100%;
+  padding:         60px 24px;
+  text-align:      center;
+  gap:             12px;
+}
+.cart-empty-icon  { font-size: 32px; color: var(--text-muted); }
+.cart-empty-text  { font-size: 13px; color: var(--text-muted); letter-spacing: 0.1em; }
+
+/* ── Cart Footer ── */
+.cart-subtotal {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     baseline;
+  margin-bottom:   6px;
+}
+.cart-subtotal-label {
+  font-size:      10px;
+  font-weight:    600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color:          var(--text-muted);
+}
+.cart-subtotal-val {
+  font-size:      20px;
+  font-weight:    300;
+  color:          var(--diamond);
+  letter-spacing: 0.04em;
+}
+.cart-subtotal-note {
+  font-size:      10px;
+  color:          var(--text-muted);
+  margin-bottom:  16px;
+  letter-spacing: 0.04em;
+}
+
+.btn-cart-checkout {
+  display:        block;
+  width:          100%;
+  padding:        16px;
+  background:     var(--sapphire);
+  color:          var(--diamond);
+  font-family:    var(--font);
+  font-size:      11px;
+  font-weight:    700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align:     center;
+  cursor:         pointer;
+  border:         none;
+  transition:     background 0.25s ease;
+  margin-bottom:  12px;
+}
+.btn-cart-checkout:hover   { background: var(--sapphire-light); }
+.btn-cart-checkout:disabled { opacity: 0.55; cursor: wait; }
+
+.cart-continue-link {
+  display:        block;
+  text-align:     center;
+  font-size:      10px;
+  letter-spacing: 0.14em;
+  color:          var(--text-muted);
+  text-transform: uppercase;
+  transition:     color var(--trans);
+}
+.cart-continue-link:hover { color: var(--diamond); }
+
+/* ============================================
+   PRODUCT CONFIG — New purchase flow
+   ============================================ */
+.config-section { margin-bottom: 0; }
+
+/* Color info block */
+.config-color-info {
+  display:        flex;
+  align-items:    center;
+  gap:            12px;
+  padding:        14px 0;
+  border-bottom:  1px solid var(--border);
+  margin-bottom:  20px;
+}
+.color-info-label {
+  font-size:      9px;
+  font-weight:    700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color:          var(--text-muted);
+  min-width:      48px;
+}
+.color-info-value {
+  font-size:      12px;
+  font-weight:    500;
+  letter-spacing: 0.12em;
+  color:          var(--diamond);
+}
+
+/* Config step */
+.config-step {
+  margin-bottom: 24px;
+}
+.config-step-header {
+  display:        flex;
+  align-items:    baseline;
+  gap:            10px;
+  margin-bottom:  12px;
+}
+.config-step-num {
+  font-size:      9px;
+  font-weight:    700;
+  letter-spacing: 0.18em;
+  color:          var(--gold);
+  text-transform: uppercase;
+}
+.config-step-label {
+  font-size:      10px;
+  font-weight:    600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color:          var(--text-muted);
+}
+
+/* Size buttons */
+.size-options {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       8px;
+}
+.size-btn {
+  padding:        10px 18px;
+  font-size:      12px;
+  font-weight:    600;
+  letter-spacing: 0.1em;
+  border:         1px solid var(--border);
+  color:          var(--text-muted);
+  background:     transparent;
+  cursor:         pointer;
+  transition:     all 0.2s ease;
+  position:       relative;
+}
+.size-btn:hover:not([disabled]):not(.selected) {
+  border-color: var(--border-h);
+  color:        var(--diamond);
+}
+.size-btn.selected {
+  border-color: var(--diamond);
+  color:        var(--diamond);
+  background:   rgba(240,244,255,0.06);
+}
+.size-btn.sold-out {
+  opacity:        0.3;
+  cursor:         not-allowed;
+  text-decoration: line-through;
+}
+.size-low-stock {
+  display:     block;
+  font-size:   9px;
+  font-weight: 400;
+  color:       var(--gold);
+  margin-top:  2px;
+}
+
+/* ── Inscription section ── */
+.config-inscription-wrap { margin-bottom: 24px; }
+
+.inscription-types {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       6px;
+  margin-bottom: 14px;
+}
+.inscription-type-btn {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            4px;
+  padding:        10px 14px;
+  font-size:      10px;
+  font-weight:    600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border:         1px solid var(--border);
+  color:          var(--text-muted);
+  background:     transparent;
+  cursor:         pointer;
+  transition:     all 0.2s;
+  min-width:      80px;
+  text-align:     center;
+}
+.inscription-type-btn:hover {
+  border-color: var(--border-h);
+  color:        var(--diamond);
+}
+.inscription-type-btn.selected {
+  border-color: var(--sapphire-light);
+  color:        var(--sapphire-light);
+  background:   rgba(46,99,216,0.08);
+}
+.inscription-type-icon {
+  font-size:  16px;
+  line-height: 1;
+  font-style: normal;
+}
+
+.optional-label {
+  font-size:      9px;
+  font-weight:    400;
+  color:          var(--text-muted);
+  letter-spacing: 0.08em;
+  font-style:     italic;
+  margin-left:    6px;
+  text-transform: none;
+}
+
+/* Inscription input area */
+.inscription-input-area { margin-top: 10px; }
+.inscription-text-wrap {
+  position: relative;
+}
+.inscription-text-input {
+  width:          100%;
+  background:     rgba(240,244,255,0.04);
+  border:         1px solid var(--border);
+  color:          var(--diamond);
+  font-family:    var(--font);
+  font-size:      15px;
+  letter-spacing: 0.12em;
+  padding:        13px 52px 13px 14px;
+  outline:        none;
+  transition:     border-color 0.2s;
+}
+.inscription-text-input:focus { border-color: rgba(240,244,255,0.3); }
+.inscription-text-input::placeholder { color: var(--text-muted); letter-spacing: 0.06em; }
+.inscription-char-count {
+  position:  absolute;
+  right:     12px;
+  top:       50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color:     var(--text-muted);
+  pointer-events: none;
+}
+.inscription-char-count.near-limit { color: var(--gold); }
+
+.inscription-date-wrap {
+  display:      flex;
+  align-items:  center;
+  gap:          12px;
+}
+.inscription-date-input {
+  background:   rgba(240,244,255,0.04);
+  border:       1px solid var(--border);
+  color:        var(--diamond);
+  font-family:  var(--font);
+  font-size:    14px;
+  padding:      12px 14px;
+  outline:      none;
+  transition:   border-color 0.2s;
+  cursor:       pointer;
+}
+.inscription-date-input:focus { border-color: rgba(240,244,255,0.3); }
+.inscription-date-format {
+  font-size:      11px;
+  color:          var(--text-muted);
+  letter-spacing: 0.08em;
+}
+
+.inscription-hint {
+  font-size:      11px;
+  color:          var(--text-muted);
+  margin-top:     6px;
+  letter-spacing: 0.04em;
+}
+
+/* ── CTA wrap (ADD TO CART + ORDER NOW) ── */
+.cta-wrap {
+  display:   flex;
+  flex-direction: column;
+  gap:       10px;
+  margin-top: 28px;
+  padding-bottom: 48px;
+}
+.btn-add-to-cart {
+  display:        block;
+  width:          100%;
+  padding:        17px;
+  background:     transparent;
+  border:         1px solid rgba(240,244,255,0.22);
+  color:          var(--text-secondary);
+  font-family:    var(--font);
+  font-size:      11px;
+  font-weight:    700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor:         not-allowed;
+  transition:     all 0.3s ease;
+}
+.btn-add-to-cart.btn-active {
+  color:       var(--diamond);
+  border-color: rgba(240,244,255,0.45);
+  cursor:      pointer;
+}
+.btn-add-to-cart.btn-active:hover {
+  background:  rgba(240,244,255,0.05);
+  border-color: var(--diamond);
+}
+
+.btn-order-now {
+  display:        block;
+  width:          100%;
+  padding:        17px;
+  background:     var(--sapphire);
+  border:         none;
+  color:          var(--diamond);
+  font-family:    var(--font);
+  font-size:      11px;
+  font-weight:    700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity:        0.35;
+  cursor:         not-allowed;
+  transition:     all 0.3s ease;
+}
+.btn-order-now.btn-active {
+  opacity: 1;
+  cursor:  pointer;
+}
+.btn-order-now.btn-active:hover { background: var(--sapphire-light); }
+.btn-order-now:disabled,
+.btn-add-to-cart:disabled {
+  pointer-events: none;
+}
+
+/* ============================================
+   RESPONSIVE — Cart + Config
+   ============================================ */
+@media (max-width: 768px) {
+  .cart-icon-mobile { display: inline-flex; }
+
+  #cartDrawer { width: 100vw; }
+
+  .cart-item { padding: 14px 16px; }
+  .cart-drawer-footer { padding: 16px 16px 28px; }
+  .cart-drawer-header { padding: 18px 16px 14px; }
+
+  .inscription-types { gap: 5px; }
+  .inscription-type-btn {
+    padding:   8px 10px;
+    min-width: 70px;
+    font-size: 9px;
+  }
+}
