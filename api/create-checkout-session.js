@@ -31,8 +31,8 @@ function validateEngraving(rawText, rawType, maxChars, engAvail, engRequired) {
   const type = rawType || null;
   if (!type || type === 'none') return { type: null, text: null };
 
-  // Validate type value
-  const VALID_TYPES = ['personal_mark', 'date', 'short_message'];
+  // Validate type value (personal_mark は旧データ後方互換で残す)
+  const VALID_TYPES = ['initials', 'name', 'date', 'short_message', 'personal_mark'];
   if (!VALID_TYPES.includes(type)) {
     throw new Error('不正な刻印タイプです');
   }
@@ -166,8 +166,9 @@ module.exports = async function handler(req, res) {
       p:  item.productId,
       v:  item.variantId || '',
       q:  item.quantity,
-      et: engravingType || '',
-      e:  engravingText || '',
+      et: engravingType  || '',
+      e:  engravingText  || '',
+      il: item.inscriptionLocation || '',
     });
   }
 

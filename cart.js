@@ -23,7 +23,7 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cielo_cart_v1';
+  const STORAGE_KEY = 'cielo_cart_v2';
   const MAX_QTY     = 99;
 
   /* ── storage ── */
@@ -41,10 +41,11 @@
      Two items are the same if they share the same product+variant+engraving.
      Different sizes or different inscriptions = different items.
   ── */
-  function makeId(productId, variantId, engravingText) {
+  function makeId(productId, variantId, engravingType, engravingText) {
     return [
       productId       || '',
       variantId       || 'no-variant',
+      engravingType   || 'none',
       (engravingText  || '').trim(),
     ].join('::');
   }
@@ -62,7 +63,7 @@
 
   function addToCart(item) {
     const cart   = read();
-    const cid    = makeId(item.productId, item.variantId, item.engravingText);
+    const cid    = makeId(item.productId, item.variantId, item.engravingType, item.engravingText);
     const exists = cart.find(i => i.cartItemId === cid);
 
     if (exists) {
