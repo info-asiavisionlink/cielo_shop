@@ -129,11 +129,18 @@ async function handleCheckoutCompleted(session) {
   const customerPhone = session.customer_details?.phone || null;
 
   // Stripe 配送先情報
-  // shipping_details.name = 受取人氏名（注文者と異なる場合がある）
   // shipping_details.address = { line1, line2, city, state, postal_code, country }
   //   state = 都道府県
-  const shippingName    = session.shipping_details?.name    || null;
-  const shippingAddress = session.shipping_details?.address || null;
+  //
+  // NOTE: Stripe Link 決済では shipping_details が null になる場合がある。
+  //   その場合は customer_details.address (請求先住所) を配送先としてフォールバック使用。
+  //   電話番号は常に customer_details.phone に入る。
+  const shippingName    = session.shipping_details?.name
+                       || session.customer_details?.name
+                       || null;
+  const shippingAddress = session.shipping_details?.address
+                       || session.customer_details?.address
+                       || null;
 
   // ── ① customers upsert
   let customerId = null;
