@@ -266,19 +266,7 @@ async function handleCheckoutCompleted(session) {
       console.error('[CIELO Webhook] order_items insert error:', itemError.message);
     }
 
-    // 在庫原子的減算（バリアントがある場合のみ）
-    if (variant) {
-      const { data: decremented, error: stockError } = await supabase
-        .rpc('decrement_stock', {
-          p_variant_id: variant.id,
-          p_quantity:   item.quantity,
-        });
-      if (stockError) {
-        console.error('[CIELO Webhook] decrement_stock error:', stockError.message);
-      } else if (!decremented) {
-        console.warn(`[CIELO Webhook] 在庫不足（購入後検知）: variant ${variant.id}`);
-      }
-    }
+    // OEM運用のため在庫減算なし
 
     emailItems.push({
       productName:   prod?.name             || '',

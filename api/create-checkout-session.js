@@ -135,9 +135,7 @@ module.exports = async function handler(req, res) {
       if (variant.product_id !== item.productId) {
         return res.status(400).json({ error: '不正なバリアントです' });
       }
-      if (variant.stock_count < item.quantity) {
-        return res.status(400).json({ error: `在庫が不足しています: ${variant.label}` });
-      }
+      // OEM運用のため在庫チェックなし
       unitAmount = product.price + (variant.price_modifier || 0);
     }
 
