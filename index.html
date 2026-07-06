@@ -17,6 +17,9 @@
 </head>
 <body>
 
+<!-- ── Page Transition Layer ── -->
+<div id="cielo-pt" aria-hidden="true"></div>
+
 <!-- ── Navigation ── -->
 <nav class="nav" id="nav">
   <div class="nav-inner">
@@ -36,46 +39,39 @@
   </div>
 </nav>
 
-<!-- ── Hero ── -->
-<section class="hero" aria-label="Hero">
-  <div class="hero-fallback"></div>
-  <div class="hero-slides" id="heroSlides" aria-hidden="true"></div>
+<!-- ── Hero Immersive ── -->
+<section class="hero-immersive" aria-labelledby="heroLabel">
 
-  <div class="hero-content">
-    <p class="hero-eyebrow">Street Luxury — Tokyo · Ginza</p>
-    <h1 class="hero-title">
-      <span id="heroTitleLine1">WEAR THE LIGHT.</span>
-      <span class="hero-title-sub" id="heroTitleLine2">Own The Room.</span>
-    </h1>
-    <p class="hero-sub">Moissanite Jewelry. Apparel. Art.<br>Built For The Few.</p>
-    <div class="hero-actions">
-      <a href="#products" class="btn btn-primary">Shop Now</a>
-      <a href="index.html?cat=jewelry" class="btn btn-ghost">Explore</a>
-    </div>
+  <!-- Background -->
+  <div class="hi-bg" aria-hidden="true">
+    <div class="hi-bg-img" id="hiBgImg"></div>
+    <div class="hi-bg-overlay"></div>
   </div>
 
-  <button class="hero-arrow hero-arrow-prev" id="heroPrev" aria-label="前のスライド">
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <polyline points="12.5 4 6.5 10 12.5 16"/>
-    </svg>
-  </button>
-  <button class="hero-arrow hero-arrow-next" id="heroNext" aria-label="次のスライド">
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <polyline points="7.5 4 13.5 10 7.5 16"/>
-    </svg>
-  </button>
-
-  <div class="hero-dots" id="heroDots" role="tablist" aria-label="スライドナビゲーション"></div>
-
-  <div class="hero-counter" aria-hidden="true">
-    <span class="hero-counter-current" id="heroCounterCurrent">01</span>
-    <span class="hero-counter-sep"> / </span>
-    <span class="hero-counter-total" id="heroCounterTotal">04</span>
+  <!-- Eyebrow -->
+  <div class="hi-eyebrow-mask" aria-hidden="true">
+    <p class="hi-eyebrow">Street Luxury — Tokyo · Ginza</p>
   </div>
 
-  <div class="hero-progress-track" aria-hidden="true">
-    <div class="hero-progress-fill" id="heroProgressFill"></div>
+  <!-- Brand: CIELO — each letter in its own overflow:hidden mask -->
+  <h1 class="hi-brand" id="heroLabel">
+    <span class="hi-char-mask"><span class="hi-char" data-delay="0">C</span></span><!--
+    --><span class="hi-char-mask"><span class="hi-char" data-delay="62">I</span></span><!--
+    --><span class="hi-char-mask"><span class="hi-char" data-delay="124">E</span></span><!--
+    --><span class="hi-char-mask"><span class="hi-char" data-delay="186">L</span></span><!--
+    --><span class="hi-char-mask"><span class="hi-char" data-delay="248">O</span></span>
+  </h1>
+
+  <!-- Subtitle -->
+  <div class="hi-sub-mask" aria-hidden="true">
+    <p class="hi-sub">Jewelry. Apparel. Art.</p>
   </div>
+
+  <!-- Scroll indicator -->
+  <div class="hi-scroll" aria-label="下にスクロール">
+    <span class="hi-scroll-line" aria-hidden="true"></span>
+  </div>
+
 </section>
 
 <!-- ── Category Nav ── -->
@@ -153,6 +149,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase.js"></script>
 <script src="hero-config.js"></script>
+<script src="cielo-intro.js"></script>
 <script src="shop.js"></script>
 </body>
 </html>

@@ -557,13 +557,18 @@ async function init() {
   const [dbSlides, products] = await Promise.all([
     fetchHeroSlides(),
     fetchProducts(),
-    fetchTags().then(tags => tags), // タグは後続処理で不要なので捨てる
+    fetchTags().then(tags => tags),
     logTableCounts(),
   ]);
 
-  // Hero 初期化 (DB → fallback)
-  const heroSlides = dbSlides || slidesFromConfig();
-  initHero(heroSlides);
+  // Hero 背景画像を immersive hero に渡す
+  // アニメーション自体は cielo-intro.js が管理
+  const heroSlides  = dbSlides || slidesFromConfig();
+  const firstBgUrl  = heroSlides[0]?.desktop_image_url || heroSlides[0]?.image || '';
+  if (firstBgUrl && typeof window.cieloSetHeroBg === 'function') {
+    window.cieloSetHeroBg(firstBgUrl);
+  }
+
   initScrollReveal();
 
   // 商品グリッド
