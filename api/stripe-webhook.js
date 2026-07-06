@@ -16,6 +16,7 @@ function buildOrderConfirmationHtml({ customerName, orderId, items, total }) {
     <tr>
       <td style="padding:9px 0;font-size:13px;color:#f0f4ff;border-bottom:1px solid rgba(240,244,255,0.06);">
         ${item.productName}${item.variantLabel ? ` <span style="color:rgba(240,244,255,0.45);font-size:12px;">/ ${item.variantLabel}</span>` : ''}
+        ${item.engravingText ? `<br><span style="color:rgba(201,168,110,0.7);font-size:11px;">刻印: ${item.engravingText}</span>` : ''}
       </td>
       <td style="padding:9px 0;font-size:13px;color:rgba(240,244,255,0.6);text-align:center;border-bottom:1px solid rgba(240,244,255,0.06);">× ${item.quantity}</td>
       <td style="padding:9px 0;font-size:13px;color:#f0f4ff;text-align:right;border-bottom:1px solid rgba(240,244,255,0.06);">¥${item.subtotal.toLocaleString('ja-JP')}</td>
@@ -84,9 +85,9 @@ async function sendOrderConfirmationEmail({ to, customerName, orderId, items, to
     const resend = getResend();
     await resend.emails.send({
       from: FROM,
-      to: [to],
+      to:   [to],
       subject: 'ご注文ありがとうございます | CIELO',
-      html: buildOrderConfirmationHtml({ customerName, orderId, items, total }),
+      html:    buildOrderConfirmationHtml({ customerName, orderId, items, total }),
     });
     console.log(`[CIELO Email] 注文確認メール送信完了: ${to}`);
   } catch (err) {
@@ -105,7 +106,6 @@ function getSupabase() {
   );
 }
 
-// Stripe 署名検証には生の Buffer が必要
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -124,11 +124,18 @@ async function handleCheckoutCompleted(session) {
   try { items = itemsJson ? JSON.parse(itemsJson) : []; }
   catch { console.error('[CIELO Webhook] itemsJson parse error'); return; }
 
-  const customerEmail   = session.customer_details?.email || null;
-  const customerName    = session.customer_details?.name  || null;
+  const customerEmail = session.customer_details?.email || null;
+  const customerName  = session.customer_details?.name  || null;
+  const customerPhone = session.customer_details?.phone || null;
+
+  // Stripe 配送先情報
+  // shipping_details.name = 受取人氏名（注文者と異なる場合がある）
+  // shipping_details.address = { line1, line2, city, state, postal_code, country }
+  //   state = 都道府県
+  const shippingName    = session.shipping_details?.name    || null;
   const shippingAddress = session.shipping_details?.address || null;
 
-  // ── ① customers upsert（email でユニーク）
+  // ── ① customers upsert
   let customerId = null;
   if (customerEmail) {
     const { data: customer, error } = await supabase
@@ -147,7 +154,7 @@ async function handleCheckoutCompleted(session) {
     }
   }
 
-  // ── ② orders insert
+  // ── ② orders insert（shipping_name / shipping_phone を新規保存）
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert({
@@ -161,7 +168,9 @@ async function handleCheckoutCompleted(session) {
       tax:                      session.total_details?.amount_tax ?? 0,
       total:                    session.amount_total,
       currency:                 session.currency,
-      shipping_address:         shippingAddress,
+      shipping_address:         shippingAddress,   // JSONB { line1, line2, city, state, postal_code, country }
+      shipping_name:            shippingName,       // 受取人氏名
+      shipping_phone:           customerPhone,      // 電話番号
     })
     .select('id')
     .single();
@@ -174,7 +183,6 @@ async function handleCheckoutCompleted(session) {
   // ── ③ order_items insert + 在庫減算
   const emailItems = [];
   for (const item of items) {
-    // バリアント + 商品情報を取得（価格はDB基準で再取得）
     const { data: variant, error: variantError } = await supabase
       .from('product_variants')
       .select('id, product_id, label, sku, price_modifier, products(name, slug, price)')
@@ -189,26 +197,31 @@ async function handleCheckoutCompleted(session) {
     const prod      = variant.products;
     const unitPrice = (prod?.price || 0) + (variant.price_modifier || 0);
 
-    // order_items insert
+    // engraving_text: items JSON から取得（null の場合は刻印なし）
+    const engravingText = (typeof item.engraving === 'string' && item.engraving.trim())
+      ? item.engraving.trim()
+      : null;
+
     const { error: itemError } = await supabase
       .from('order_items')
       .insert({
-        order_id:     order.id,
-        product_id:   variant.product_id,
-        variant_id:   variant.id,
-        product_name: prod?.name  || '',
-        product_slug: prod?.slug  || productSlug || '',
+        order_id:      order.id,
+        product_id:    variant.product_id,
+        variant_id:    variant.id,
+        product_name:  prod?.name  || '',
+        product_slug:  prod?.slug  || productSlug || '',
         variant_label: variant.label,
-        unit_price:   unitPrice,
-        quantity:     item.quantity,
-        subtotal:     unitPrice * item.quantity,
+        unit_price:    unitPrice,
+        quantity:      item.quantity,
+        subtotal:      unitPrice * item.quantity,
+        engraving_text: engravingText,
       });
 
     if (itemError) {
       console.error('[CIELO Webhook] order_items insert error:', itemError.message);
     }
 
-    // 在庫原子的減算（stock_count >= quantity の場合のみ更新）
+    // 在庫原子的減算
     const { data: decremented, error: stockError } = await supabase
       .rpc('decrement_stock', {
         p_variant_id: variant.id,
@@ -222,11 +235,12 @@ async function handleCheckoutCompleted(session) {
     }
 
     emailItems.push({
-      productName:  prod?.name  || '',
-      variantLabel: variant.label || '',
-      quantity:     item.quantity,
-      unitPrice:    unitPrice,
-      subtotal:     unitPrice * item.quantity,
+      productName:   prod?.name    || '',
+      variantLabel:  variant.label || '',
+      engravingText: engravingText || null,
+      quantity:      item.quantity,
+      unitPrice:     unitPrice,
+      subtotal:      unitPrice * item.quantity,
     });
   }
 
@@ -239,7 +253,7 @@ async function handleCheckoutCompleted(session) {
     total:        session.amount_total,
   });
 
-  console.log(`[CIELO Webhook] 注文完了: order_id=${order.id} email=${customerEmail}`);
+  console.log(`[CIELO Webhook] 注文完了: order_id=${order.id} email=${customerEmail} shipping=${shippingName}`);
 }
 
 // ── メインハンドラ
@@ -253,7 +267,6 @@ module.exports = async function handler(req, res) {
     return res.status(400).send('Missing stripe-signature header');
   }
 
-  // ── Stripe 署名検証（改ざん・なりすまし防止）
   let event;
   try {
     const rawBody = await getRawBody(req);
@@ -267,19 +280,16 @@ module.exports = async function handler(req, res) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // ── イベントハンドラ
   try {
     switch (event.type) {
       case 'checkout.session.completed':
         await handleCheckoutCompleted(event.data.object);
         break;
       default:
-        // 未処理イベントは無視（200 を返して Stripe の再試行を防ぐ）
         break;
     }
   } catch (err) {
     console.error('[CIELO Webhook] Handler error:', err.message);
-    // 内部エラーでも 200 を返す（Stripe がリトライしないよう）
     return res.status(200).json({ received: true, error: err.message });
   }
 

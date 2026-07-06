@@ -103,6 +103,57 @@
     /* ── 旧スタイル互換 ── */
     .variant-btn .stock-hint { display:block; font-size:10px; font-weight:400; color:rgba(240,244,255,.45); margin-top:2px; }
     .variant-btn.low-stock .stock-hint { color:#e8a04a; }
+
+    /* ── 刻印セクション ── */
+    .engraving-section {
+      margin-bottom:22px;
+    }
+    .engraving-input-wrap {
+      position:relative;
+      margin-top:8px;
+    }
+    .engraving-input {
+      width:100%;
+      background:rgba(240,244,255,.04);
+      border:1px solid rgba(240,244,255,.14);
+      color:#f0f4ff;
+      font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
+      font-size:14px;
+      letter-spacing:0.12em;
+      padding:13px 52px 13px 14px;
+      outline:none;
+      transition:border-color .2s;
+    }
+    .engraving-input:focus { border-color:rgba(240,244,255,.35); }
+    .engraving-input::placeholder { color:rgba(240,244,255,.25); letter-spacing:0.06em; }
+    .engraving-count {
+      position:absolute;
+      right:14px; top:50%;
+      transform:translateY(-50%);
+      font-size:11px;
+      color:rgba(240,244,255,.3);
+      pointer-events:none;
+      font-variant-numeric:tabular-nums;
+    }
+    .engraving-count.near-limit { color:#e8a04a; }
+    .engraving-note {
+      font-size:11px;
+      color:rgba(240,244,255,.25);
+      margin-top:5px;
+      letter-spacing:0.04em;
+      line-height:1.5;
+    }
+    .engraving-required-badge {
+      display:inline-block;
+      font-size:9px;
+      font-weight:700;
+      letter-spacing:0.12em;
+      color:rgba(240,244,255,.45);
+      border:1px solid rgba(240,244,255,.18);
+      padding:2px 6px;
+      margin-left:8px;
+      vertical-align:middle;
+    }
   </style>
 </head>
 <body>
@@ -220,6 +271,30 @@
         </div>
       </div>
 
+      <!-- 刻印入力（product.engraving_available = true の場合のみ表示） -->
+      <div id="engravingSection" class="engraving-section" style="display:none">
+        <div class="step-header">
+          <span class="step-num" id="engravingStepLabel">刻印</span>
+          <span class="step-label">
+            刻印内容を入力してください
+            <span id="engravingRequiredBadge" class="engraving-required-badge" style="display:none">必須</span>
+          </span>
+        </div>
+        <div class="engraving-input-wrap">
+          <input
+            type="text"
+            id="engravingInput"
+            class="engraving-input"
+            maxlength="20"
+            placeholder="例: CIELO · 2025"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <span id="engravingCount" class="engraving-count">0 / 20</span>
+        </div>
+        <p class="engraving-note" id="engravingNote">A-Z・数字・記号・日本語対応 / 最大20文字</p>
+      </div>
+
       <!-- ORDER SUMMARY -->
       <div id="orderSummaryBox" class="order-summary" style="display:none">
         <span class="order-summary-title">ORDER SUMMARY</span>
@@ -270,6 +345,71 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase.js"></script>
 <script>
+// ─── 刻印機能 ─────────────────────────────────
+let _engProduct = null; // 現在の商品データ（刻印設定参照用）
+
+function setupEngraving(product) {
+  _engProduct = product;
+  const section   = document.getElementById('engravingSection');
+  const input     = document.getElementById('engravingInput');
+  const countEl   = document.getElementById('engravingCount');
+  const noteEl    = document.getElementById('engravingNote');
+  const reqBadge  = document.getElementById('engravingRequiredBadge');
+
+  if (!product.engraving_available) {
+    section.style.display = 'none';
+    return;
+  }
+
+  const maxC = product.engraving_max_chars || 20;
+  input.maxLength = maxC;
+  countEl.textContent = `0 / ${maxC}`;
+  noteEl.textContent  = `A-Z・数字・記号・日本語対応 / 最大${maxC}文字`;
+
+  if (product.engraving_required) {
+    reqBadge.style.display = '';
+  }
+
+  section.style.display = 'block';
+
+  input.addEventListener('input', () => {
+    const len = input.value.length;
+    countEl.textContent = `${len} / ${maxC}`;
+    countEl.classList.toggle('near-limit', len >= maxC * 0.8);
+  });
+}
+
+// 刻印テキストを取得・クライアントサイドバリデーション
+// 戻り値: null（刻印なし）| string（刻印テキスト）| undefined（バリデーションNG → 中止）
+function getEngravingText() {
+  if (!_engProduct?.engraving_available) return null;
+
+  const input = document.getElementById('engravingInput');
+  if (!input) return null;
+
+  // trim のみ（サーバーでも同様に処理）
+  let val = input.value.trim();
+  // 制御文字除去（クライアント側プレビュー用）
+  val = val.replace(/[\x00-\x1F\x7F]/g, '').replace(/<[^>]*>/g, '');
+
+  const maxC = _engProduct.engraving_max_chars || 20;
+
+  if (_engProduct.engraving_required && !val) {
+    alert('刻印内容を入力してください');
+    input.focus();
+    return undefined; // バリデーション失敗
+  }
+
+  if (val.length > maxC) {
+    alert(`刻印は${maxC}文字以内で入力してください`);
+    input.focus();
+    return undefined;
+  }
+
+  return val || null;
+}
+// ─────────────────────────────────────────────
+
 const PLACEHOLDER_IMG = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">' +
   '<rect fill="#1A1A1A" width="400" height="400"/>' +
@@ -732,8 +872,16 @@ function renderVariants(product, variants) {
       if (buyBtn.disabled) return;
       const raw = JSON.parse(buyBtn.dataset.orderJson || '{}');
       if (!raw.items?.length) return;
-      const slug = new URLSearchParams(window.location.search).get('slug');
-      await initiateCheckout({ productId: raw.productId, productSlug: slug, items: raw.items }, buyBtn);
+
+      const engraving = getEngravingText();
+      if (engraving === undefined) return; // クライアントバリデーション失敗
+
+      const slug  = new URLSearchParams(window.location.search).get('slug');
+      const items = raw.items.map(item => ({
+        ...item,
+        ...(engraving !== null ? { engraving } : {}),
+      }));
+      await initiateCheckout({ productId: raw.productId, productSlug: slug, items }, buyBtn);
     };
 
   /* ══ Jewelry / Art ══ */
@@ -805,8 +953,16 @@ function renderVariants(product, variants) {
 
     buyBtn.onclick = async () => {
       if (buyBtn.disabled) return;
+
+      const engraving = getEngravingText();
+      if (engraving === undefined) return; // クライアントバリデーション失敗
+
       const slug  = new URLSearchParams(window.location.search).get('slug');
-      const items = Object.values(selected).map(b => ({ variantId: b.dataset.vid, quantity: qty }));
+      const items = Object.values(selected).map(b => ({
+        variantId: b.dataset.vid,
+        quantity:  qty,
+        ...(engraving !== null ? { engraving } : {}),
+      }));
       await initiateCheckout({ productId: product.id, productSlug: slug, items }, buyBtn);
     };
   }
@@ -860,6 +1016,9 @@ function renderProduct(product) {
 
   const variants = (product.product_variants || []).sort((a,b) => a.sort_order - b.sort_order);
   renderVariants(product, variants);
+
+  // 刻印セクションを商品設定に基づいて初期化
+  setupEngraving(product);
 }
 
 // Nav mobile toggle (product page: always scrolled)
