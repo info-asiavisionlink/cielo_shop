@@ -558,16 +558,16 @@ function renderSizeSection(sizes, stepNum) {
 
 /* ── Inscription type definitions ── */
 var INSC_TYPES = {
-  initials:      { label: 'Initials',      icon: 'I',  ph: 'TY / T.Y.',           helper: 'Enter exactly as it should appear.' },
-  name:          { label: 'Name',          icon: 'Aa', ph: 'YOSHIKI / Y. Tanaka',  helper: 'Enter the name exactly as it should appear.' },
-  date:          { label: 'Date',          icon: '◷',  ph: null,                   helper: 'Select the date to be inscribed.' },
-  short_message: { label: 'Short Message', icon: '"',  ph: 'FOREVER',              helper: 'Enter the message exactly as it should appear.' },
+  initials:      { label: 'イニシャル',   icon: 'I',  ph: 'TY / T.Y.',     helper: '刻印する表記のまま入力してください。' },
+  name:          { label: 'お名前',       icon: 'Aa', ph: 'YOSHIKI / 慶樹', helper: '刻印する表記のまま入力してください。' },
+  date:          { label: '日付',         icon: '◷',  ph: null,             helper: '記念日・大切な日を選んでください。' },
+  short_message: { label: 'メッセージ',   icon: '"',  ph: 'FOREVER',        helper: '伝えたい言葉をそのまま入力してください。' },
 };
 var INSC_INPUT_LABELS = {
-  initials:      'Your Initials',
-  name:          'Your Name',
-  date:          'Date',
-  short_message: 'Your Message',
+  initials:      'イニシャルを入力',
+  name:          'お名前を入力',
+  date:          '日付を選択',
+  short_message: 'メッセージを入力',
 };
 var ALL_INSC_TYPE_KEYS = ['initials', 'name', 'date', 'short_message'];
 
@@ -599,7 +599,7 @@ function renderInscriptionTypeStep(product, stepNum) {
   return '<div class="config-step" id="inscriptionTypeStep">'
     + '<div class="config-step-header">'
     + '<span class="config-step-num">STEP ' + stepNum + '</span>'
-    + '<span class="config-step-label">Personal Inscription' + optionalSpan + '</span>'
+    + '<span class="config-step-label">個人刻印' + optionalSpan + '</span>'
     + '</div>'
     + '<div class="inscription-types" id="inscriptionTypes" role="group" aria-label="刻印タイプを選択">' + typeBtns + '</div>'
     + '</div>';
@@ -611,11 +611,11 @@ function renderInscriptionInputStep(product, stepNum) {
   return '<div class="config-step" id="inscriptionInputStep" style="display:none">'
     + '<div class="config-step-header">'
     + '<span class="config-step-num">STEP ' + stepNum + '</span>'
-    + '<span class="config-step-label" id="inscriptionInputStepLabel">Your Inscription</span>'
+    + '<span class="config-step-label" id="inscriptionInputStepLabel">刻印内容を入力</span>'
     + '</div>'
     + '<div class="inscription-input-area" id="inscriptionInputArea"></div>'
     + '<div class="inscription-preview" id="inscriptionPreview" style="display:none">'
-    + '<span class="inscription-preview-label">YOUR INSCRIPTION</span>'
+    + '<span class="inscription-preview-label">刻印内容の確認</span>'
     + '<span class="inscription-preview-text" id="inscriptionPreviewText"></span>'
     + '</div>'
     + '</div>';
@@ -667,7 +667,7 @@ function initInscriptionInteractions(product) {
         '<p class="inscription-helper">' + INSC_TYPES.date.helper + '</p>'
         + '<div class="inscription-date-wrap">'
         + '<input type="date" id="inscDateInput" class="inscription-date-input" aria-label="日付を入力">'
-        + '<span class="inscription-date-format">表示形式: YYYY.MM.DD</span>'
+        + '<span class="inscription-date-format">YYYY.MM.DD 形式で刻印されます</span>'
         + '</div>';
       var dateInp = document.getElementById('inscDateInput');
       if (dateInp) dateInp.addEventListener('change', function(e) {
