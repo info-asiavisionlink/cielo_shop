@@ -240,32 +240,24 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
 .hero-slide {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
   opacity: 0;
   transition: opacity 1.2s ease;
+  overflow: hidden;
 }
 .hero-slide.active { opacity: 1; }
 
-.hero-slide::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    160deg,
-    rgba(10,10,10,0.86) 0%,
-    rgba(27,79,191,0.12) 50%,
-    rgba(10,10,10,0.78) 100%
-  );
-}
+/* .hero-slide::after は CINEMATIC MOTION LAYER セクションで定義 (CSS変数対応版) */
 
 /* ── Hero Content ── */
 .hero-content {
   position: relative;
-  z-index: 5;
+  z-index: 10;
   text-align: center;
   max-width: 1120px;
   padding: 0 var(--pad-x);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .hero-eyebrow {
@@ -356,7 +348,7 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 10;
+  z-index: 20;
   width: 44px;
   height: 44px;
   background: rgba(10, 10, 10, 0.42);
@@ -384,7 +376,7 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
   transform: translateX(-50%);
   display: flex;
   gap: 10px;
-  z-index: 10;
+  z-index: 20;
   align-items: center;
 }
 .hero-dot {
@@ -410,7 +402,7 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
   position: absolute;
   right: 36px;
   bottom: 44px;
-  z-index: 10;
+  z-index: 20;
   display: flex;
   align-items: baseline;
   gap: 4px;
@@ -434,7 +426,7 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
   bottom: 0; left: 0; right: 0;
   height: 2px;
   background: rgba(240, 244, 255, 0.06);
-  z-index: 10;
+  z-index: 20;
 }
 .hero-progress-fill {
   height: 100%;
@@ -1188,3 +1180,195 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
   border: 0;
 }
 .pt-header { padding-top: var(--nav-h); }
+
+/* ============================================
+   HERO — CINEMATIC MOTION LAYER
+   ============================================ */
+
+/* 内側の画像コンテナ (js で生成) */
+.hero-slide-bg {
+  position: absolute;
+  inset: -6%;                    /* 余白を持たせてズームしても端が見えない */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  will-change: transform;
+  transform: scale(1);
+}
+
+/* アクティブスライドの画像にシネマティックスローズーム */
+.hero-slide.active .hero-slide-bg {
+  animation: heroSlowZoom 9s ease-out forwards;
+}
+
+@keyframes heroSlowZoom {
+  from { transform: scale(1.00); }
+  to   { transform: scale(1.07); }
+}
+
+/* オーバーレイ — CSS変数で濃度をスライドごとに制御 */
+.hero-slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(10, 10, 10, var(--slide-overlay, 0.65)) 0%,
+    rgba(27, 79, 191, 0.08) 50%,
+    rgba(10, 10, 10, calc(var(--slide-overlay, 0.65) * 0.9)) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* 動画スライド */
+.hero-slide-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* テキスト位置バリアント */
+.hero-content--left {
+  text-align: left;
+  align-items: flex-start;
+}
+.hero-content--left .hero-title { align-items: flex-start; }
+.hero-content--left .hero-title::after { margin-left: 0; }
+.hero-content--left .hero-actions { justify-content: flex-start; }
+
+.hero-content--right {
+  text-align: right;
+  align-items: flex-end;
+}
+.hero-content--right .hero-title { align-items: flex-end; }
+.hero-content--right .hero-title::after { margin-right: 0; }
+.hero-content--right .hero-actions { justify-content: flex-end; }
+
+/* ============================================
+   SCROLL REVEAL
+   ============================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity  0.9s var(--ease-out),
+    transform 0.9s var(--ease-out);
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* 遅延バリアント (グリッド内での連鎖) */
+.product-card.reveal:nth-child(2)  { transition-delay: 0.06s; }
+.product-card.reveal:nth-child(3)  { transition-delay: 0.12s; }
+.product-card.reveal:nth-child(4)  { transition-delay: 0.18s; }
+.product-card.reveal:nth-child(5)  { transition-delay: 0.06s; }
+.product-card.reveal:nth-child(6)  { transition-delay: 0.12s; }
+.product-card.reveal:nth-child(7)  { transition-delay: 0.18s; }
+.product-card.reveal:nth-child(8)  { transition-delay: 0.24s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .hero-slide.active .hero-slide-bg {
+    animation: none;
+  }
+}
+
+/* ============================================
+   PRODUCT CARDS — IMAGE FOCUS
+   ============================================ */
+
+/* ホバーはリフトではなく画像に集中させる */
+.product-card {
+  transform: none;
+}
+.product-card:hover {
+  transform: none;
+  border-color: rgba(240, 244, 255, 0.12);
+  box-shadow: none;
+}
+
+/* セカンダリ画像ホバー — 将来的に2枚目をdata属性で仕込む場合の準備 */
+.product-card-img img {
+  transition: transform 0.9s var(--ease-out), opacity 0.4s ease;
+}
+.product-card:hover .product-card-img img {
+  transform: scale(1.04);
+}
+
+/* ============================================
+   ART CATEGORY — GALLERY MODE
+   ============================================ */
+.product-grid.art-mode {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.product-grid.art-mode .product-card {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+
+.product-grid.art-mode .product-card:first-child {
+  border-top: 1px solid var(--border);
+}
+
+.product-grid.art-mode .product-card-img {
+  aspect-ratio: 4 / 3;
+}
+
+.product-grid.art-mode .product-card-info {
+  padding: 24px 0 32px;
+}
+
+.product-grid.art-mode .product-card-name {
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.product-grid.art-mode .product-card-price {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.15em;
+}
+
+/* Art モードの "inquiry" 的な表示 (featured アート) */
+.product-grid.art-mode .product-card-badge {
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+}
+
+@media (min-width: 768px) {
+  .product-grid.art-mode {
+    grid-template-columns: 1fr 1fr;
+    gap: 0 32px;
+  }
+  .product-grid.art-mode .product-card {
+    border-left: none;
+    border-right: none;
+  }
+}
+
+@media (min-width: 1100px) {
+  .product-grid.art-mode {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

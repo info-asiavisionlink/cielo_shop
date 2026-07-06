@@ -1,5 +1,6 @@
-// CIELO SHOP — Hero Configuration
-// ヒーロー変更方法: imageのURLを書き換えて Git Push → Vercel自動反映
+// CIELO SHOP — Hero Configuration (フォールバック)
+// 通常は CIELO CONSOLE の "Hero Slides" から管理してください。
+// Supabase の hero_slides テーブルにデータがない場合のみ、この IMAGES が使用されます。
 // 推奨サイズ: 1920×1080px 以上、webp形式
 
 const IMAGES = [
