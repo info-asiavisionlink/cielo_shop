@@ -6,16 +6,16 @@
   <title>Order Confirmed | CIELO</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/deyc8gz2k/image/upload/v1781495771/e6azpivui9xg68hr1ria.png">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --gold:      #c8a96e;
-      --gold-dim:  rgba(200,169,110,.45);
+      --gold-dim:  rgba(200,169,110,.35);
       --white:     #f0f4ff;
-      --white-dim: rgba(240,244,255,.55);
+      --white-dim: rgba(240,244,255,.5);
       --bg:        #0d0d0d;
     }
 
@@ -24,11 +24,8 @@
       color: var(--white);
       font-family: 'Inter', sans-serif;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
     }
 
-    /* Nav */
     .nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       background: rgba(13,13,13,.85);
@@ -39,118 +36,165 @@
     }
     .nav-logo img { height: 22px; }
 
-    /* Main */
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 80px 24px 48px;
+    /* ── Hero ── */
+    .hero {
+      padding: 130px 24px 60px;
       text-align: center;
+      border-bottom: 1px solid rgba(240,244,255,.06);
     }
 
     .icon-wrap {
-      width: 72px; height: 72px;
-      border: 1.5px solid var(--gold);
+      width: 64px; height: 64px;
+      border: 1px solid var(--gold-dim);
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 32px;
+      margin: 0 auto 28px;
       animation: fadeIn .6s ease both;
     }
-    .icon-wrap svg { width: 32px; height: 32px; stroke: var(--gold); }
+    .icon-wrap svg { width: 26px; height: 26px; stroke: var(--gold); }
 
-    .label-tag {
+    .eyebrow {
       font-family: 'Outfit', sans-serif;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: .18em;
-      text-transform: uppercase;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: .2em; text-transform: uppercase;
       color: var(--gold);
-      margin-bottom: 16px;
-      animation: fadeIn .6s .1s ease both;
+      margin-bottom: 14px;
+      animation: fadeIn .5s .1s both;
     }
 
     h1 {
       font-family: 'Outfit', sans-serif;
-      font-size: clamp(28px, 5vw, 42px);
-      font-weight: 200;
-      letter-spacing: .06em;
+      font-size: clamp(26px, 4vw, 40px);
+      font-weight: 200; letter-spacing: .06em;
       color: var(--white);
-      margin-bottom: 20px;
-      animation: fadeIn .6s .15s ease both;
+      margin-bottom: 18px;
+      animation: fadeIn .5s .15s both;
     }
 
-    .message {
-      font-size: 14px;
-      line-height: 1.8;
+    .lead {
+      font-size: 13px; line-height: 1.9;
       color: var(--white-dim);
-      max-width: 480px;
-      margin: 0 auto 40px;
-      animation: fadeIn .6s .2s ease both;
+      max-width: 480px; margin: 0 auto;
+      animation: fadeIn .5s .2s both;
     }
 
-    .divider {
-      width: 48px; height: 1px;
-      background: var(--gold-dim);
-      margin: 0 auto 40px;
-      animation: fadeIn .6s .25s ease both;
+    /* ── Process Section ── */
+    .process {
+      max-width: 640px; margin: 0 auto;
+      padding: 64px 24px;
     }
 
-    .btn-group {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      align-items: center;
-      animation: fadeIn .6s .3s ease both;
+    .process-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: .2em; text-transform: uppercase;
+      color: var(--gold); opacity: .7;
+      margin-bottom: 40px;
+      text-align: center;
+      animation: fadeIn .5s .3s both;
+    }
+
+    .steps {
+      display: flex; flex-direction: column; gap: 0;
+      animation: fadeIn .5s .35s both;
+    }
+
+    .step {
+      display: flex; gap: 20px; align-items: flex-start;
+      padding: 18px 0;
+      border-bottom: 1px solid rgba(240,244,255,.05);
+    }
+    .step:last-child { border-bottom: none; }
+
+    .step-index {
+      font-family: 'Outfit', sans-serif;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: .12em; color: var(--gold);
+      opacity: .5; min-width: 24px; padding-top: 2px;
+    }
+
+    .step-body {}
+    .step-name {
+      font-size: 12px; font-weight: 600;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: rgba(240,244,255,.75);
+      margin-bottom: 4px;
+    }
+    .step-desc {
+      font-size: 12px; line-height: 1.7;
+      color: rgba(240,244,255,.35);
+    }
+
+    /* ── Timeline notice ── */
+    .timeline-notice {
+      margin: 0 auto 64px;
+      max-width: 640px; padding: 0 24px;
+      animation: fadeIn .5s .5s both;
+    }
+    .timeline-inner {
+      border: 1px solid rgba(200,169,110,.18);
+      padding: 22px 24px;
+      display: flex; align-items: baseline; gap: 16px;
+    }
+    .timeline-label {
+      font-size: 9px; font-weight: 700;
+      letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(200,169,110,.5); white-space: nowrap;
+    }
+    .timeline-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px; font-weight: 300;
+      color: var(--white); letter-spacing: .04em;
+    }
+    .timeline-note {
+      font-size: 11px; color: var(--white-dim);
+      margin-top: 4px; line-height: 1.6;
+    }
+
+    /* ── Actions ── */
+    .actions {
+      text-align: center; padding: 0 24px 80px;
+      animation: fadeIn .5s .55s both;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
     }
 
     .btn-primary {
-      display: inline-block;
-      padding: 14px 40px;
-      background: var(--gold);
-      color: #000;
+      display: inline-block; padding: 14px 44px;
+      background: var(--gold); color: #000;
       font-family: 'Outfit', sans-serif;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      text-decoration: none;
-      border-radius: 2px;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase;
+      text-decoration: none; border-radius: 2px;
       transition: background .2s;
     }
     .btn-primary:hover { background: #d4b87a; }
 
     .btn-secondary {
-      font-size: 11px;
-      letter-spacing: .1em;
-      color: var(--white-dim);
-      text-decoration: none;
+      font-size: 11px; letter-spacing: .1em;
+      color: var(--white-dim); text-decoration: none;
       text-transform: uppercase;
     }
     .btn-secondary:hover { color: var(--white); }
 
     .session-id {
-      margin-top: 48px;
-      font-size: 11px;
-      color: rgba(240,244,255,.2);
-      letter-spacing: .04em;
-      animation: fadeIn .6s .4s ease both;
+      font-size: 10px; color: rgba(240,244,255,.18);
+      letter-spacing: .04em; margin-top: 8px;
     }
 
-    /* Footer */
     footer {
       padding: 24px 32px;
       border-top: 1px solid rgba(240,244,255,.06);
-      text-align: center;
-      font-size: 11px;
-      color: rgba(240,244,255,.2);
-      letter-spacing: .05em;
+      text-align: center; font-size: 11px;
+      color: rgba(240,244,255,.2); letter-spacing: .05em;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(12px); }
+      from { opacity: 0; transform: translateY(10px); }
       to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .timeline-inner { flex-direction: column; gap: 8px; }
     }
   </style>
 </head>
@@ -162,32 +206,95 @@
   </a>
 </nav>
 
-<main>
+<!-- ── Hero ── -->
+<section class="hero">
   <div class="icon-wrap">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="20 6 9 17 4 12"/>
     </svg>
   </div>
 
-  <p class="label-tag">Order Confirmed</p>
+  <p class="eyebrow">Order Confirmed</p>
 
-  <h1>Thank You.</h1>
+  <h1>Your Piece Is Now Being Prepared.</h1>
 
-  <p class="message">
-    ご注文ありがとうございます。<br>
-    確認メールを入力いただいたアドレスへお送りしました。<br>
-    発送準備が整い次第、発送通知をお届けします。
+  <p class="lead">
+    ご注文を承りました。<br>
+    これより、あなたのために一品として完成させる工程へ進みます。<br>
+    確認メールをご登録のアドレスにお送りしました。
   </p>
+</section>
 
-  <div class="divider"></div>
+<!-- ── Preparation Process ── -->
+<section class="process">
+  <p class="process-title">The Final Preparation</p>
 
-  <div class="btn-group">
-    <a href="index.html" class="btn-primary">Shop に戻る</a>
-    <a href="mailto:info@asiavision.link" class="btn-secondary">お問い合わせ</a>
+  <div class="steps">
+    <div class="step">
+      <span class="step-index">01</span>
+      <div class="step-body">
+        <p class="step-name">Order Confirmed</p>
+        <p class="step-desc">ご注文内容の確認と、商品の品質検品を行います。</p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-index">02</span>
+      <div class="step-body">
+        <p class="step-name">Personal Inscription</p>
+        <p class="step-desc">ご指定の刻印を、一点ずつ施します。<br>この品があなたのものになる瞬間です。</p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-index">03</span>
+      <div class="step-body">
+        <p class="step-name">Final Finishing</p>
+        <p class="step-desc">最終仕上げと、品質の最終確認を行います。</p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-index">04</span>
+      <div class="step-body">
+        <p class="step-name">CIELO Registry</p>
+        <p class="step-desc">この品をあなたの所有として登録します。<br>CIELOが発行する所有の記録です。</p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-index">05</span>
+      <div class="step-body">
+        <p class="step-name">Presentation Packaging</p>
+        <p class="step-desc">CIELOのプレゼンテーションパッケージングを行います。<br>開封の瞬間まで、体験の一部です。</p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-index">06</span>
+      <div class="step-body">
+        <p class="step-name">Dispatch</p>
+        <p class="step-desc">すべての工程が完了した品が、あなたのもとへ向かいます。<br>発送の際にメールでご連絡します。</p>
+      </div>
+    </div>
   </div>
+</section>
 
+<!-- ── Timeline ── -->
+<div class="timeline-notice">
+  <div class="timeline-inner">
+    <p class="timeline-label">Preparation Time</p>
+    <div>
+      <p class="timeline-value">約 1〜4 週間</p>
+      <p class="timeline-note">
+        商品の内容・刻印の有無により異なります。<br>
+        発送が完了しましたら、追跡番号を含む発送通知メールをお送りします。
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Actions ── -->
+<div class="actions">
+  <a href="index.html" class="btn-primary">Shop に戻る</a>
+  <a href="mailto:info@asiavision.link" class="btn-secondary">お問い合わせ</a>
   <p class="session-id" id="sessionId"></p>
-</main>
+</div>
 
 <footer>
   © 2025 CIELO / ASIA VISION LINK. All rights reserved.
@@ -197,10 +304,9 @@
 <script>
   const sessionId = new URLSearchParams(window.location.search).get('session_id');
   if (sessionId) {
-    document.getElementById('sessionId').textContent = 'Order ref: ' + sessionId;
-    // Clear cart after successful checkout
+    document.getElementById('sessionId').textContent = 'Order ref: ' + sessionId.slice(0, 20) + '...';
     if (window.CieloCart) window.CieloCart.clearCart();
-    else try { localStorage.removeItem('cielo_cart_v1'); } catch(e) {}
+    else try { localStorage.removeItem('cielo_cart_v2'); } catch(e) {}
   }
 </script>
 </body>

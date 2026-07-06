@@ -39,10 +39,18 @@ function buildOrderConfirmationHtml({ customerName, orderId, items, total }) {
         <p style="margin:0;font-size:26px;font-weight:300;color:#f0f4ff;letter-spacing:0.04em;">ご注文ありがとうございます</p>
       </td></tr>
 
-      <tr><td style="padding-bottom:28px;font-size:14px;color:rgba(240,244,255,0.7);line-height:1.8;">
+      <tr><td style="padding-bottom:20px;font-size:14px;color:rgba(240,244,255,0.7);line-height:1.9;">
         ${customerName ? `${customerName} 様、` : ''}この度はご注文いただきありがとうございます。<br>
-        ご注文内容を受け付けました。発送準備が整い次第、発送通知メールをお送りします。
+        これより、刻印・最終仕上げ・登録・パッケージングを一点ずつ行います。
       </td></tr>
+
+      <tr><td style="padding:16px 18px 20px;background:rgba(200,169,110,0.04);border:1px solid rgba(200,169,110,0.15);border-radius:4px;margin-bottom:24px;">
+        <p style="margin:0 0 8px 0;font-size:9px;font-weight:700;letter-spacing:0.18em;color:rgba(200,169,110,0.6);text-transform:uppercase;">Preparation Time</p>
+        <p style="margin:0 0 6px 0;font-size:16px;font-weight:300;color:#f0f4ff;letter-spacing:0.04em;">約 1〜4 週間</p>
+        <p style="margin:0;font-size:11px;color:rgba(240,244,255,0.4);line-height:1.7;">商品・刻印内容によって異なります。発送完了時に追跡番号をご連絡します。</p>
+      </td></tr>
+
+      <tr><td style="height:20px;"></td></tr>
 
       <tr><td>
         <p style="margin:0 0 12px 0;font-size:10px;font-weight:700;letter-spacing:0.14em;color:rgba(240,244,255,0.4);text-transform:uppercase;">Order Items</p>
@@ -125,11 +133,12 @@ async function handleCheckoutCompleted(session) {
     const raw = itemsJson ? JSON.parse(itemsJson) : [];
     // Support both compact format {p,v,q,et,e} and legacy format {productId,variantId,...}
     items = raw.map(i => ({
-      productId:     i.p  || i.productId  || null,
-      variantId:     i.v  || i.variantId  || null,
-      quantity:      i.q  || i.quantity   || 1,
-      engravingType: i.et || i.engravingType || null,
-      engraving:     i.e  || i.engraving  || null,
+      productId:           i.p  || i.productId  || null,
+      variantId:           i.v  || i.variantId  || null,
+      quantity:            i.q  || i.quantity   || 1,
+      engravingType:       i.et || i.engravingType || null,
+      engraving:           i.e  || i.engraving  || null,
+      inscriptionLocation: i.il || i.inscriptionLocation || null,
     }));
   } catch { console.error('[CIELO Webhook] itemsJson parse error'); return; }
 
@@ -204,7 +213,7 @@ async function handleCheckoutCompleted(session) {
     if (item.variantId) {
       const { data: variant, error: variantError } = await supabase
         .from('product_variants')
-        .select('id, product_id, label, sku, price_modifier, products(name, slug, price)')
+        .select('id, product_id, label, sku, price_modifier, products(name, slug, price, inscription_location)')
         .eq('id', item.variantId)
         .single();
       if (variantError || !variant) {
@@ -219,7 +228,7 @@ async function handleCheckoutCompleted(session) {
     } else if (item.productId) {
       const { data: product } = await supabase
         .from('products')
-        .select('name, slug, price')
+        .select('name, slug, price, inscription_location')
         .eq('id', item.productId)
         .single();
       prod      = product;
@@ -248,8 +257,9 @@ async function handleCheckoutCompleted(session) {
         unit_price:    unitPrice,
         quantity:      item.quantity,
         subtotal:      unitPrice * item.quantity,
-        engraving_type: engravingType,
-        engraving_text: engravingText,
+        engraving_type:       engravingType,
+        engraving_text:       engravingText,
+        inscription_location: prod?.inscription_location || item.inscriptionLocation || null,
       });
 
     if (itemError) {

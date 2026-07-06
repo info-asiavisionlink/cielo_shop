@@ -9,9 +9,11 @@
 
   /* ── Engraving type labels ── */
   const ENG_LABELS = {
-    personal_mark: 'パーソナルマーク',
-    date:          '日付刻印',
-    short_message: 'ショートメッセージ',
+    initials:      'Initials',
+    name:          'Name',
+    date:          'Date',
+    short_message: 'Short Message',
+    personal_mark: 'Initials / Name',
   };
 
   /* ── Format price ── */
@@ -23,8 +25,10 @@
       ? `<img src="${item.imageUrl}" alt="${item.productName}" loading="lazy">`
       : `<div class="cart-item-img-placeholder">CIELO</div>`;
 
-    const inscriptionHtml = item.engravingType
-      ? `<div class="cart-item-inscription">${ENG_LABELS[item.engravingType] || item.engravingType}: ${item.engravingText || ''}</div>`
+    const inscriptionHtml = item.supportsInscription
+      ? (item.engravingType
+          ? `<div class="cart-item-inscription"><span class="ci-insc-label">Personal Inscription</span><span class="ci-insc-type">${ENG_LABELS[item.engravingType] || item.engravingType}</span>${item.engravingText ? ` <span class="ci-insc-text">${item.engravingText}</span>` : ''}</div>`
+          : `<div class="cart-item-inscription cart-item-no-insc">刻印なし</div>`)
       : '';
 
     const sizeLine = item.variantLabel
@@ -76,6 +80,10 @@
       </div>
       <p class="cart-subtotal-note">送料・税は注文確認時に計算されます</p>
       <button id="cartCheckoutBtn" class="btn-cart-checkout">注文手続きへ進む</button>
+      <div style="margin-top:14px;padding:12px 0;border-top:1px solid rgba(240,244,255,.07);text-align:left;">
+        <p style="font-size:9px;font-weight:700;letter-spacing:.14em;color:rgba(200,169,110,.6);margin-bottom:5px;text-transform:uppercase;">Prepared for Its Owner</p>
+        <p style="font-size:11px;line-height:1.7;color:rgba(240,244,255,.35);">ご注文後、一点ずつ準備を行います。<br>発送までの目安は約<span style="color:rgba(240,244,255,.55);">1〜4週間</span>です。</p>
+      </div>
       <a href="index.html" class="cart-continue-link">← ショッピングを続ける</a>`;
 
     document.getElementById('cartCheckoutBtn')?.addEventListener('click', handleCheckout);
