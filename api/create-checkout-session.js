@@ -82,9 +82,11 @@ module.exports = async function handler(req, res) {
   const stripe   = getStripe();
 
   // ── 商品情報をサーバーサイドで取得
+  // * で全カラムを取得 — マイグレーション前後どちらでも安全に動作する
+  // engraving_* カラムはマイグレーション前は undefined → ?? でデフォルト値にフォールバック
   const { data: product, error: productError } = await supabase
     .from('products')
-    .select('id, name, price, status, engraving_available, engraving_required, engraving_max_chars, product_images(image_url, is_thumbnail)')
+    .select('*, product_images(image_url, is_thumbnail)')
     .eq('id', productId)
     .single();
 
@@ -97,7 +99,8 @@ module.exports = async function handler(req, res) {
 
   // ── 刻印バリデーション（サーバーサイド）
   // 全 items から刻印テキストを取得して検証
-  const maxC     = product.engraving_max_chars || 20;
+  // マイグレーション前は undefined → false / 20 にフォールバック
+  const maxC     = product.engraving_max_chars  ?? 20;
   const validatedEngravings = [];
 
   for (const item of items) {
@@ -108,12 +111,16 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: e.message });
     }
 
+    // マイグレーション前は engraving_available が undefined → false 扱い
+    const engAvail    = product.engraving_available ?? false;
+    const engRequired = product.engraving_required  ?? false;
+
     // 必須チェック
-    if (product.engraving_available && product.engraving_required && !engText) {
+    if (engAvail && engRequired && !engText) {
       return res.status(400).json({ error: '刻印内容を入力してください' });
     }
     // 非対応商品に刻印を送ってきた場合は無視（不正ではないが保存しない）
-    if (!product.engraving_available) {
+    if (!engAvail) {
       engText = null;
     }
     validatedEngravings.push(engText);
