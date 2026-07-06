@@ -9,9 +9,9 @@
 
   /* ── Engraving type labels ── */
   const ENG_LABELS = {
-    personal_mark: 'Personal Mark',
-    date:          'Date Mark',
-    short_message: 'Short Message',
+    personal_mark: 'パーソナルマーク',
+    date:          '日付刻印',
+    short_message: 'ショートメッセージ',
   };
 
   /* ── Format price ── */
@@ -60,7 +60,7 @@
         <div class="cart-empty">
           <p class="cart-empty-icon">◻</p>
           <p class="cart-empty-text">カートは空です</p>
-          <a href="index.html" class="cart-continue-link">SHOP を見る</a>
+          <a href="index.html" class="cart-continue-link">ショップを見る</a>
         </div>`;
       footer.innerHTML = '';
       return;
@@ -71,11 +71,11 @@
     const total = window.CieloCart.getTotal(cart);
     footer.innerHTML = `
       <div class="cart-subtotal">
-        <span class="cart-subtotal-label">Subtotal</span>
+        <span class="cart-subtotal-label">小計</span>
         <span class="cart-subtotal-val">${fmt(total)}</span>
       </div>
       <p class="cart-subtotal-note">送料・税は注文確認時に計算されます</p>
-      <button id="cartCheckoutBtn" class="btn-cart-checkout">PROCEED TO CHECKOUT</button>
+      <button id="cartCheckoutBtn" class="btn-cart-checkout">注文手続きへ進む</button>
       <a href="index.html" class="cart-continue-link">← ショッピングを続ける</a>`;
 
     document.getElementById('cartCheckoutBtn')?.addEventListener('click', handleCheckout);
@@ -128,7 +128,7 @@
     } catch (err) {
       console.error('[CIELO Cart] Checkout error:', err);
       alert(err.message || '決済の開始に失敗しました。もう一度お試しください。');
-      if (btn) { btn.disabled = false; btn.textContent = 'PROCEED TO CHECKOUT'; }
+      if (btn) { btn.disabled = false; btn.textContent = '注文手続きへ進む'; }
     }
   }
 
@@ -178,7 +178,7 @@
     drawer.setAttribute('aria-label', 'カート');
     drawer.innerHTML = `
       <div class="cart-drawer-header">
-        <span class="cart-drawer-title">CART</span>
+        <span class="cart-drawer-title">カート</span>
         <button class="cart-drawer-close" id="cartDrawerClose" aria-label="カートを閉じる">×</button>
       </div>
       <div class="cart-drawer-body" id="cartDrawerBody"></div>

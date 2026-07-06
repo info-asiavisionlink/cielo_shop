@@ -262,10 +262,10 @@
       <!-- CTA: ADD TO CART + ORDER NOW -->
       <div class="cta-wrap">
         <button class="btn-add-to-cart" id="addToCartBtn" disabled aria-label="カートに追加">
-          ADD TO CART
+          カートに追加
         </button>
         <button class="btn-order-now" id="orderNowBtn" disabled aria-label="今すぐ注文">
-          ORDER NOW
+          今すぐ注文する
         </button>
       </div>
 
@@ -445,13 +445,13 @@ function renderStock(product) {
     : product.stock_count;
   if (count === 0) {
     el.className = 'product-stock stock-out';
-    el.innerHTML = '<span class="stock-dot"></span> Sold Out';
+    el.innerHTML = '<span class="stock-dot"></span> 売り切れ';
   } else if (count <= 5) {
     el.className = 'product-stock stock-low';
     el.innerHTML = '<span class="stock-dot"></span> 残り' + count + '点';
   } else {
     el.className = 'product-stock stock-in';
-    el.innerHTML = '<span class="stock-dot"></span> In Stock';
+    el.innerHTML = '<span class="stock-dot"></span> 在庫あり';
   }
 }
 
@@ -567,7 +567,7 @@ function renderSizeSection(sizes, stepNum) {
   return '<div class="config-step" id="sizeStep">' +
     '<div class="config-step-header">' +
     '<span class="config-step-num">STEP ' + stepNum + '</span>' +
-    '<span class="config-step-label">SELECT SIZE</span>' +
+    '<span class="config-step-label">サイズを選択</span>' +
     '</div>' +
     '<div class="size-options" id="sizeOptions" role="group" aria-label="サイズ選択">' + btns + '</div>' +
     '</div>';
@@ -576,18 +576,18 @@ function renderSizeSection(sizes, stepNum) {
 function renderInscriptionSection(product, stepNum) {
   if (!product.engraving_available) return '';
   var required     = product.engraving_required || false;
-  var optionalSpan = required ? '' : '<span class="optional-label">— Optional</span>';
+  var optionalSpan = required ? '' : '<span class="optional-label">— 任意</span>';
   var noneSelected = !required ? ' selected' : '';
   return '<div class="config-step" id="inscriptionStep">' +
     '<div class="config-step-header">' +
     '<span class="config-step-num">STEP ' + stepNum + '</span>' +
-    '<span class="config-step-label">PERSONAL INSCRIPTION' + optionalSpan + '</span>' +
+    '<span class="config-step-label">個別刻印' + optionalSpan + '</span>' +
     '</div>' +
     '<div class="inscription-types" id="inscriptionTypes" role="group" aria-label="刻印タイプを選択">' +
-    '<button class="inscription-type-btn' + noneSelected + '" data-type="none" aria-pressed="' + (!required) + '"><span class="inscription-type-icon">—</span><span>No Inscription</span></button>' +
-    '<button class="inscription-type-btn" data-type="personal_mark" aria-pressed="false"><span class="inscription-type-icon">Aa</span><span>Personal Mark</span></button>' +
-    '<button class="inscription-type-btn" data-type="date" aria-pressed="false"><span class="inscription-type-icon">◷</span><span>Date Mark</span></button>' +
-    '<button class="inscription-type-btn" data-type="short_message" aria-pressed="false"><span class="inscription-type-icon">"</span><span>Short Message</span></button>' +
+    '<button class="inscription-type-btn' + noneSelected + '" data-type="none" aria-pressed="' + (!required) + '"><span class="inscription-type-icon">—</span><span>刻印なし</span></button>' +
+    '<button class="inscription-type-btn" data-type="personal_mark" aria-pressed="false"><span class="inscription-type-icon">Aa</span><span>イニシャル・お名前</span></button>' +
+    '<button class="inscription-type-btn" data-type="date" aria-pressed="false"><span class="inscription-type-icon">◷</span><span>日付</span></button>' +
+    '<button class="inscription-type-btn" data-type="short_message" aria-pressed="false"><span class="inscription-type-icon">"</span><span>メッセージ</span></button>' +
     '</div>' +
     '<div class="inscription-input-area" id="inscriptionInputArea"></div>' +
     '</div>';
@@ -623,7 +623,7 @@ function initInscriptionInteractions(product) {
         updateCTAState();
       });
     } else {
-      var hints = { personal_mark: '例: Y.T. / YOSHIKI', short_message: '例: FOREVER / WITH YOU' };
+      var hints = { personal_mark: '例: Y.T. / YOSHIKI / 慶樹', short_message: '例: FOREVER / WITH YOU / ありがとう' };
       var hint  = hints[type] || '';
       inputArea.innerHTML =
         '<div class="inscription-text-wrap">' +
@@ -705,7 +705,7 @@ function renderConfig(product, variants) {
   var stepNum = 1;
 
   if (parsed.defaultColor) {
-    html += '<div class="config-color-info"><span class="color-info-label">COLOR</span><span class="color-info-value">' + parsed.defaultColor.toUpperCase() + '</span></div>';
+    html += '<div class="config-color-info"><span class="color-info-label">カラー</span><span class="color-info-value">' + parsed.defaultColor.toUpperCase() + '</span></div>';
   }
   if (parsed.sizes.length) { html += renderSizeSection(parsed.sizes, stepNum++); }
   if (product.engraving_available) { html += renderInscriptionSection(product, stepNum++); }
@@ -751,7 +751,7 @@ function initCTA(product) {
     window.CieloCart.addToCart(item);
 
     var orig = addBtn.textContent;
-    addBtn.textContent = 'ADDED ✓';
+    addBtn.textContent = '追加しました ✓';
     addBtn.style.opacity = '0.7';
     setTimeout(function() { addBtn.textContent = orig; addBtn.style.opacity = ''; }, 1800);
 
