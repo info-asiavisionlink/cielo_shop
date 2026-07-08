@@ -913,9 +913,12 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
 }
 .gallery-pc-main:hover img { transform: scale(1.03); }
 
-.gallery-thumbs { display: flex; gap: 8px; }
+.gallery-thumbs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
 .gallery-thumb {
-  flex: 0 0 calc(20% - 7px);
   aspect-ratio: 1 / 1;
   overflow: hidden;
   background: var(--dark-3);
