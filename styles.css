@@ -2104,6 +2104,14 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
   color:       var(--gold);
   margin-top:  2px;
 }
+.size-price-mod {
+  display:        block;
+  font-size:      9px;
+  font-weight:    500;
+  color:          rgba(240,244,255,0.45);
+  letter-spacing: 0.04em;
+  margin-top:     2px;
+}
 
 /* ── Inscription section ── */
 .config-inscription-wrap { margin-bottom: 24px; }

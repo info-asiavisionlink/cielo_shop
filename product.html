@@ -548,13 +548,18 @@ function updateCTAState() {
 function renderSizeSection(sizes, stepNum) {
   if (!sizes.length) return '';
   var btns = sizes.map(function(s) {
-    var lowStock = s.stock > 0 && s.stock <= 5 ? '<span class="size-low-stock">残' + s.stock + '</span>' : '';
-    var soldout  = s.stock === 0 ? ' sold-out' : '';
-    var disabled = s.stock === 0 ? ' disabled' : '';
+    var lowStock    = s.stock > 0 && s.stock <= 5 ? '<span class="size-low-stock">残' + s.stock + '</span>' : '';
+    var soldout     = s.stock === 0 ? ' sold-out' : '';
+    var disabled    = s.stock === 0 ? ' disabled' : '';
+    var modifierStr = s.modifier > 0
+      ? '<span class="size-price-mod">+¥' + s.modifier.toLocaleString('ja-JP') + '</span>'
+      : s.modifier < 0
+      ? '<span class="size-price-mod">-¥' + Math.abs(s.modifier).toLocaleString('ja-JP') + '</span>'
+      : '';
     return '<button class="size-btn' + soldout + '" data-variant-id="' + s.variantId +
       '" data-size="' + s.label + '" data-modifier="' + s.modifier +
       '" data-stock="' + s.stock + '"' + disabled + ' aria-pressed="false">' +
-      s.label + lowStock + '</button>';
+      s.label + modifierStr + lowStock + '</button>';
   }).join('');
   return '<div class="config-step" id="sizeStep">' +
     '<div class="config-step-header">' +
