@@ -239,6 +239,13 @@
         <hr class="section-divider">
       </div>
 
+      <!-- Care Section (jewelry only, rendered by JS) -->
+      <div id="careSection" style="display:none">
+        <p class="product-section-title">Care</p>
+        <div id="careContent"></div>
+        <hr class="section-divider">
+      </div>
+
       <!-- Product Configuration (rendered by JS) -->
       <div id="configSection" class="config-section"></div>
 
@@ -447,12 +454,48 @@ function renderStock(product) {
   }
 }
 
+var CARE_LABEL_MAP = {
+  '水耐性':      'WATER',
+  '汗耐性':      'PERSPIRATION',
+  '海水耐性':    'SEA WATER',
+  'シャワー使用':'SHOWER',
+  'プール使用':  'POOL',
+  '温泉使用':    'HOT SPRING',
+  '香水・化粧品':'FRAGRANCE',
+  '日常のお手入れ':'DAILY CARE',
+  '保管方法':    'STORAGE',
+  '石の特徴':    'STONE',
+  '石のお手入れ':'STONE CARE',
+};
+
+function renderCare(product) {
+  var careSection = document.getElementById('careSection');
+  var careContent = document.getElementById('careContent');
+  if (!careSection || !careContent) return;
+
+  var careSpecs = (product.product_specs || []).filter(function(s) { return s.spec_type === 'care'; });
+  if (!careSpecs.length) return;
+
+  var html = careSpecs.map(function(s) {
+    var label = CARE_LABEL_MAP[s.spec_key] || s.spec_key;
+    return '<div class="care-item">'
+      + '<span class="care-item-label">' + label + '</span>'
+      + '<p class="care-item-text">' + s.spec_value + '</p>'
+      + '</div>';
+  }).join('');
+
+  careContent.innerHTML = html;
+  careSection.style.display = 'block';
+}
+
 function renderSpecs(product) {
   var specTable    = document.getElementById('specTable');
   var specsSection = document.getElementById('specsSection');
   if (!specTable || !specsSection) return;
 
-  var specsArr = (product.product_specs || []).sort(function(a, b) { return a.sort_order - b.sort_order; });
+  var specsArr = (product.product_specs || [])
+    .filter(function(s) { return s.spec_type !== 'care'; })
+    .sort(function(a, b) { return a.sort_order - b.sort_order; });
   if (specsArr.length) {
     function isSizeKey(s) { return /^size_[a-z]+_(length|width|sleeve)$/i.test(s.spec_key); }
     var main = specsArr.filter(function(s) { return !isSizeKey(s); });
@@ -909,6 +952,7 @@ function renderProduct(product) {
   }
 
   renderSpecs(product);
+  renderCare(product);
 
   var images   = (product.product_images || []).sort(function(a, b) { return a.sort_order - b.sort_order; });
   initMobileGallery(images);
