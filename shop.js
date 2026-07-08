@@ -14,11 +14,36 @@ const PLACEHOLDER_IMG = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent
 );
 
 // ─── 状態管理 ────────────────────────────────
-let allProducts = [];
-let activeCat   = 'all';
-let activeTag   = 'all';
-let searchQuery = '';
-let fetchError  = null;
+let allProducts  = [];
+let activeCat    = 'all';
+let activeSubcat = 'all';
+let activeTag    = 'all';
+let searchQuery  = '';
+let fetchError   = null;
+
+// ─── サブカテゴリ定義 ─────────────────────────
+const SUBCATS = {
+  jewelry: [
+    { value: 'necklace',  label: 'ネックレス' },
+    { value: 'bracelet',  label: 'ブレスレット' },
+    { value: 'ring',      label: 'リング' },
+    { value: 'anklet',    label: 'アンクレット' },
+    { value: 'earring',   label: 'イアリング' },
+  ],
+  apparel: [
+    { value: 'tshirt',     label: 'Tシャツ' },
+    { value: 'setup',      label: 'セットアップ' },
+    { value: 'hoodie',     label: 'パーカー' },
+    { value: 'longtshirt', label: 'ロングTシャツ' },
+    { value: 'swimwear',   label: '水着' },
+  ],
+  art: [
+    { value: 'pop_art',     label: 'ポップアート' },
+    { value: 'luxury_art',  label: 'ラグジュアリーアート' },
+    { value: 'street_art',  label: 'ストリートアート' },
+    { value: 'fan_art',     label: 'ファンアート' },
+  ],
+};
 
 // ─── Supabase 接続確認 ────────────────────────
 async function logTableCounts() {
@@ -225,15 +250,17 @@ function initTagDropdown() {
 // ─── フィルター ──────────────────────────────
 function filterProducts() {
   return allProducts.filter(p => {
-    const matchCat  = activeCat === 'all' || p.category === activeCat;
-    const matchTag  = activeTag === 'all'
+    const matchCat    = activeCat === 'all' || p.category === activeCat;
+    const matchSubcat = activeSubcat === 'all'
+      || (p.subcategory || '').toLowerCase() === activeSubcat;
+    const matchTag    = activeTag === 'all'
       || (p.product_tags || []).some(pt => pt.tags?.id === activeTag);
     const q = searchQuery.toLowerCase();
     const matchSearch = !q
       || (p.name || '').toLowerCase().includes(q)
       || (p.name_ja || '').toLowerCase().includes(q)
       || (p.subcategory || '').toLowerCase().includes(q);
-    return matchCat && matchTag && matchSearch;
+    return matchCat && matchSubcat && matchTag && matchSearch;
   });
 }
 
@@ -310,17 +337,47 @@ function renderProducts() {
   initScrollReveal();
 }
 
+// ─── サブカテゴリナビ描画 ─────────────────────
+function renderSubcatNav() {
+  const wrap = document.getElementById('subcatNav');
+  if (!wrap) return;
+
+  const subs = SUBCATS[activeCat];
+  if (!subs || activeCat === 'all') {
+    wrap.innerHTML = '';
+    wrap.style.display = 'none';
+    return;
+  }
+
+  wrap.style.display = '';
+  wrap.innerHTML = ['<button class="subcat-btn' + (activeSubcat === 'all' ? ' active' : '') + '" data-subcat="all">すべて</button>']
+    .concat(subs.map(s =>
+      '<button class="subcat-btn' + (activeSubcat === s.value ? ' active' : '') + '" data-subcat="' + s.value + '">' + s.label + '</button>'
+    )).join('');
+
+  wrap.querySelectorAll('.subcat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeSubcat = btn.dataset.subcat;
+      wrap.querySelectorAll('.subcat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderProducts();
+    });
+  });
+}
+
 // ─── カテゴリフィルター ──────────────────────
 function initCategoryFilter() {
   document.querySelectorAll('.cat-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      activeCat = btn.dataset.cat;
+      activeCat    = btn.dataset.cat;
+      activeSubcat = 'all';
       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       activeTag = 'all';
       const { label } = getTagDropdownEls();
       if (label) label.textContent = 'タグ検索';
       document.getElementById('tagDropdownBtn')?.classList.remove('has-selection');
+      renderSubcatNav();
       updateTagDropdown();
       renderProducts();
     });
@@ -552,6 +609,7 @@ async function init() {
   initSearch();
   initTagDropdown();
   applyUrlParams();
+  renderSubcatNav();
 
   // Hero と 商品 を並列取得
   const [dbSlides, products] = await Promise.all([

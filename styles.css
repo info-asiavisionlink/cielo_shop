@@ -474,6 +474,37 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
   border-bottom-color: var(--sapphire-light);
 }
 
+/* ── Subcategory Nav ── */
+.subcat-nav {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0 var(--pad-x);
+  background: var(--black);
+  border-bottom: 1px solid rgba(240,244,255,0.05);
+  gap: 2px;
+}
+.subcat-nav::-webkit-scrollbar { display: none; }
+
+.subcat-btn {
+  flex-shrink: 0;
+  padding: 12px 18px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(240,244,255,0.35);
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.subcat-btn:hover { color: rgba(240,244,255,0.7); }
+.subcat-btn.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
 /* ============================================
    SEARCH BAR + TAG DROPDOWN
    ============================================ */
