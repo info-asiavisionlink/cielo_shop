@@ -1,7 +1,7 @@
 /* =============================================
-   CIELO SHOP — shop.js
-   Supabase のみからデータ取得。モックデータなし。
-   Hero はSupabase hero_slides テーブルを参照し、
+   CIELO. SHOP — shop.js
+   Apparel 専用ショップ。Supabase のみからデータ取得。
+   Hero は Supabase hero_slides テーブルを参照し、
    取得できない場合は hero-config.js の IMAGES にフォールバック。
    ============================================= */
 
@@ -15,33 +15,20 @@ const PLACEHOLDER_IMG = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent
 
 // ─── 状態管理 ────────────────────────────────
 let allProducts  = [];
-let activeCat    = 'all';
+let activeCat    = 'apparel'; // CIELO. = Apparel専用
 let activeSubcat = 'all';
 let activeTag    = 'all';
 let searchQuery  = '';
 let fetchError   = null;
 
-// ─── サブカテゴリ定義 ─────────────────────────
+// ─── サブカテゴリ定義（Apparel のみ）─────────
 const SUBCATS = {
-  jewelry: [
-    { value: 'necklace',  label: 'ネックレス' },
-    { value: 'bracelet',  label: 'ブレスレット' },
-    { value: 'ring',      label: 'リング' },
-    { value: 'anklet',    label: 'アンクレット' },
-    { value: 'earring',   label: 'イアリング' },
-  ],
   apparel: [
     { value: 'tshirt',     label: 'Tシャツ' },
-    { value: 'setup',      label: 'セットアップ' },
-    { value: 'hoodie',     label: 'パーカー' },
     { value: 'longtshirt', label: 'ロングTシャツ' },
+    { value: 'hoodie',     label: 'パーカー' },
+    { value: 'setup',      label: 'セットアップ' },
     { value: 'swimwear',   label: '水着' },
-  ],
-  art: [
-    { value: 'pop_art',     label: 'ポップアート' },
-    { value: 'luxury_art',  label: 'ラグジュアリーアート' },
-    { value: 'street_art',  label: 'ストリートアート' },
-    { value: 'fan_art',     label: 'ファンアート' },
   ],
 };
 
@@ -72,7 +59,7 @@ window._cieloDebug = async function () {
   }
 };
 
-// ─── 商品取得 ────────────────────────────────
+// ─── 商品取得（apparel のみ）────────────────
 async function fetchProducts() {
   const { data, error } = await db
     .from('products')
@@ -83,6 +70,7 @@ async function fetchProducts() {
       product_tags ( tags ( id, name, name_ja ) )
     `)
     .eq('status', 'active')
+    .eq('category', 'apparel')
     .order('featured', { ascending: false })
     .order('created_at', { ascending: false });
 
@@ -142,32 +130,18 @@ function slidesFromConfig() {
   }));
 }
 
-// ─── カテゴリ別タグマップ ─────────────────────
-let categoryTagMap = { all: [], jewelry: [], apparel: [], art: [] };
+// ─── タグマップ（apparel のみ）───────────────
+let categoryTagMap = { apparel: [] };
 
 function buildCategoryTagMap(products) {
-  const maps = { jewelry: new Map(), apparel: new Map(), art: new Map() };
-
+  const map = new Map();
   products.forEach(p => {
-    const cat = p.category;
-    if (!maps[cat]) return;
     (p.product_tags || []).forEach(pt => {
       const tag = pt.tags;
-      if (tag && !maps[cat].has(tag.id)) maps[cat].set(tag.id, tag);
+      if (tag && !map.has(tag.id)) map.set(tag.id, tag);
     });
   });
-
-  const allMap = new Map();
-  ['jewelry', 'apparel', 'art'].forEach(cat => {
-    [...maps[cat].values()].slice(0, 3).forEach(tag => {
-      if (!allMap.has(tag.id)) allMap.set(tag.id, tag);
-    });
-  });
-
-  categoryTagMap.all     = [...allMap.values()];
-  categoryTagMap.jewelry = [...maps.jewelry.values()];
-  categoryTagMap.apparel = [...maps.apparel.values()];
-  categoryTagMap.art     = [...maps.art.values()];
+  categoryTagMap.apparel = [...map.values()];
 }
 
 // ─── タグドロップダウン ───────────────────────
@@ -298,9 +272,6 @@ function renderProducts() {
   const grid    = document.getElementById('productGrid');
   const countEl = document.getElementById('productsCount');
 
-  // Artモード切替
-  grid.classList.toggle('art-mode', activeCat === 'art');
-
   if (fetchError) {
     grid.innerHTML = `
       <div class="products-empty" style="grid-column:1/-1">
@@ -365,23 +336,9 @@ function renderSubcatNav() {
   });
 }
 
-// ─── カテゴリフィルター ──────────────────────
+// ─── カテゴリフィルター（apparel 固定）────────
 function initCategoryFilter() {
-  document.querySelectorAll('.cat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      activeCat    = btn.dataset.cat;
-      activeSubcat = 'all';
-      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeTag = 'all';
-      const { label } = getTagDropdownEls();
-      if (label) label.textContent = 'タグ検索';
-      document.getElementById('tagDropdownBtn')?.classList.remove('has-selection');
-      renderSubcatNav();
-      updateTagDropdown();
-      renderProducts();
-    });
-  });
+  // CIELO. = Apparel専用。カテゴリ切替なし。
 }
 
 // ─── 検索 ────────────────────────────────────
@@ -591,15 +548,9 @@ function initHero(heroSlides) {
   startTimer();
 }
 
-// ─── URL パラメータ (?cat=jewelry) ───────────
+// ─── URL パラメータ ───────────────────────────
 function applyUrlParams() {
-  const cat = new URLSearchParams(window.location.search).get('cat');
-  if (cat && ['jewelry', 'apparel', 'art'].includes(cat)) {
-    activeCat = cat;
-    document.querySelectorAll('.cat-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.cat === cat);
-    });
-  }
+  // apparel 固定のためカテゴリ切替なし
 }
 
 // ─── メイン初期化 ────────────────────────────
