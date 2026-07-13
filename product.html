@@ -104,38 +104,104 @@
     .variant-btn .stock-hint { display:block; font-size:10px; font-weight:400; color:rgba(240,244,255,.45); margin-top:2px; }
     .variant-btn.low-stock .stock-hint { color:#e8a04a; }
 
-    /* ── Inscription Input Step ── */
-    #inscriptionInputStep {
-      animation: insc-step-in 0.22s ease;
+    /* ── Message Card Section ── */
+    .message-card-section {
+      margin-top: 24px;
+      padding: 18px 20px;
+      border: 1px solid rgba(240,244,255,.08);
+      border-radius: 4px;
+      background: rgba(240,244,255,.02);
     }
-    @keyframes insc-step-in {
+    .message-card-toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .message-card-toggle-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      color: rgba(240,244,255,.85);
+    }
+    .message-card-toggle-sub {
+      font-size: 10px;
+      color: rgba(240,244,255,.38);
+      margin-top: 2px;
+      letter-spacing: .04em;
+    }
+    .msg-toggle-check {
+      width: 18px;
+      height: 18px;
+      accent-color: #c8a96e;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .message-card-fields {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      animation: msgCardIn 0.22s ease;
+    }
+    @keyframes msgCardIn {
       from { opacity:0; transform:translateY(6px); }
       to   { opacity:1; transform:translateY(0); }
     }
-
-    /* ── Inscription Preview ── */
-    .inscription-preview {
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      margin-top:12px;
-      padding:12px 14px;
-      background:rgba(200,169,110,.04);
-      border:1px solid rgba(200,169,110,.14);
-      border-radius:3px;
+    .msg-field label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: rgba(240,244,255,.4);
+      margin-bottom: 6px;
     }
-    .inscription-preview-label {
-      font-size:9px;
-      font-weight:700;
-      letter-spacing:0.16em;
-      color:rgba(200,169,110,.5);
-      text-transform:uppercase;
+    .msg-char-count {
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: .04em;
+      color: rgba(240,244,255,.3);
     }
-    .inscription-preview-text {
-      font-size:16px;
-      font-weight:300;
-      letter-spacing:0.14em;
-      color:#f0f4ff;
+    .msg-field input,
+    .msg-field textarea {
+      width: 100%;
+      box-sizing: border-box;
+      background: rgba(240,244,255,.04);
+      border: 1px solid rgba(240,244,255,.12);
+      color: #f0f4ff;
+      font-size: 13px;
+      font-weight: 300;
+      letter-spacing: .04em;
+      padding: 10px 12px;
+      border-radius: 3px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color .2s;
+      resize: none;
+    }
+    .msg-field input:focus,
+    .msg-field textarea:focus {
+      border-color: rgba(200,169,110,.4);
+    }
+    .msg-field input.error,
+    .msg-field textarea.error {
+      border-color: rgba(239,68,68,.5);
+    }
+    .message-card-note {
+      margin-top: 14px;
+      font-size: 10px;
+      letter-spacing: .06em;
+      color: rgba(200,169,110,.6);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .message-card-note::before {
+      content: '✦';
+      font-size: 8px;
     }
   </style>
 </head>
@@ -249,6 +315,35 @@
       <!-- Product Configuration (rendered by JS) -->
       <div id="configSection" class="config-section"></div>
 
+      <!-- Message Card Service -->
+      <div class="message-card-section" id="messageCardSection">
+        <label class="message-card-toggle-row">
+          <input type="checkbox" class="msg-toggle-check" id="messageCardToggle">
+          <div>
+            <div class="message-card-toggle-label">メッセージカードを付ける</div>
+            <div class="message-card-toggle-sub">プレゼントにオリジナルメッセージカードを同封（レーザー刻印）</div>
+          </div>
+        </label>
+        <div class="message-card-fields" id="messageCardFields" style="display:none">
+          <div class="msg-field">
+            <label for="msgCardTo">相手のお名前 <span style="color:rgba(239,68,68,.7)">*</span></label>
+            <input type="text" id="msgCardTo" placeholder="例：田中 慶樹" maxlength="30" autocomplete="off">
+          </div>
+          <div class="msg-field">
+            <label for="msgCardMessage">
+              メッセージ <span style="color:rgba(239,68,68,.7)">*</span>
+              <span class="msg-char-count" id="msgCharCount">0 / 30</span>
+            </label>
+            <textarea id="msgCardMessage" placeholder="例：誕生日おめでとう。いつもありがとう。" maxlength="30" rows="3"></textarea>
+          </div>
+          <div class="msg-field">
+            <label for="msgCardFrom">贈る方のお名前 <span style="color:rgba(239,68,68,.7)">*</span></label>
+            <input type="text" id="msgCardFrom" placeholder="例：山田 太郎" maxlength="30" autocomplete="off">
+          </div>
+          <p class="message-card-note">メッセージカードへレーザー刻印いたします</p>
+        </div>
+      </div>
+
       <!-- CTA: ADD TO CART + ORDER NOW -->
       <div class="cta-wrap">
         <button class="btn-add-to-cart" id="addToCartBtn" disabled aria-label="カートに追加">
@@ -261,9 +356,9 @@
 
       <!-- Preparation Notice -->
       <div style="margin-top:18px;padding:14px 0;border-top:1px solid rgba(240,244,255,.07);">
-        <p style="font-size:10px;font-weight:700;letter-spacing:.14em;color:#c8a96e;margin-bottom:6px;text-transform:uppercase;">Prepared for Its Owner</p>
+        <p style="font-size:10px;font-weight:700;letter-spacing:.14em;color:#c8a96e;margin-bottom:6px;text-transform:uppercase;">Prepared for You</p>
         <p style="font-size:12px;line-height:1.75;color:rgba(240,244,255,.4);">
-          ご注文後、刻印・最終仕上げ・登録・パッケージングを一点ずつ行います。<br>
+          ご注文後、最終仕上げ・パッケージングを一点ずつ行います。<br>
           発送までの目安は約<strong style="color:rgba(240,244,255,.6);font-weight:500;">1〜4週間</strong>です。
         </p>
       </div>
@@ -303,7 +398,7 @@
 <script>
 /* ============================================================
    CIELO SHOP — product.html JS
-   Product configuration: Color info / Size / Inscription
+   Product configuration: Color info / Size / Message Card
    ADD TO CART + ORDER NOW CTAs
    Cart: window.CieloCart (cart.js)
    ============================================================ */
@@ -329,14 +424,14 @@ async function initiateCartCheckout(btn) {
   btn.style.opacity = '0.6';
 
   try {
+    const messageCard = window.CieloCart?.getMessageCard() || null;
     const payload = {
       items: cart.map(item => ({
-        productId:     item.productId,
-        variantId:     item.variantId     || null,
-        quantity:      item.quantity,
-        engravingType: item.engravingType || null,
-        engravingText: item.engravingText || null,
+        productId: item.productId,
+        variantId: item.variantId || null,
+        quantity:  item.quantity,
       })),
+      messageCard: messageCard?.enabled ? messageCard : null,
     };
     const res  = await fetch('/api/create-checkout-session', {
       method:  'POST',
@@ -537,8 +632,6 @@ var configState = {
   variantLabel:  null,
   priceModifier: 0,
   color:         null,
-  engravingType: null,
-  engravingText: null,
 };
 
 function parseVariantStructure(variants) {
@@ -575,12 +668,7 @@ function updateCTAState() {
 
   var product     = configState.product;
   var hasVariants = (product && product.product_variants && product.product_variants.length > 0);
-  var sizeOk      = !hasVariants || configState.variantId !== null;
-  var engRequired = product && product.engraving_required && product.engraving_available;
-  var engOk       = !engRequired
-    || (configState.engravingType !== null
-        && (configState.engravingType === 'none' || (configState.engravingText && configState.engravingText.trim())));
-  var can = sizeOk && engOk;
+  var can = !hasVariants || configState.variantId !== null;
 
   addBtn.disabled   = !can;
   orderBtn.disabled = !can;
@@ -613,190 +701,83 @@ function renderSizeSection(sizes, stepNum) {
     '</div>';
 }
 
-/* ── Inscription type definitions ── */
-var INSC_TYPES = {
-  initials:      { label: 'イニシャル',   icon: 'I',  ph: 'TY / T.Y.',     helper: '刻印する表記のまま入力してください。' },
-  name:          { label: 'お名前',       icon: 'Aa', ph: 'YOSHIKI / 慶樹', helper: '刻印する表記のまま入力してください。' },
-  date:          { label: '日付',         icon: '◷',  ph: null,             helper: '記念日・大切な日を選んでください。' },
-  short_message: { label: 'メッセージ',   icon: '"',  ph: 'FOREVER',        helper: '伝えたい言葉をそのまま入力してください。' },
-};
-var INSC_INPUT_LABELS = {
-  initials:      'イニシャルを入力',
-  name:          'お名前を入力',
-  date:          '日付を選択',
-  short_message: 'メッセージを入力',
-};
-var ALL_INSC_TYPE_KEYS = ['initials', 'name', 'date', 'short_message'];
+/* ── Message Card ── */
+function initMessageCard() {
+  var toggle   = document.getElementById('messageCardToggle');
+  var fields   = document.getElementById('messageCardFields');
+  var toEl     = document.getElementById('msgCardTo');
+  var msgEl    = document.getElementById('msgCardMessage');
+  var fromEl   = document.getElementById('msgCardFrom');
+  var countEl  = document.getElementById('msgCharCount');
+  if (!toggle || !fields) return;
 
-function getAvailableTypes(product) {
-  var types = product.inscription_available_types;
-  if (!types || !types.length) return ALL_INSC_TYPE_KEYS;
-  return ALL_INSC_TYPE_KEYS.filter(function(k) { return types.indexOf(k) !== -1; });
-}
-
-/* ── STEP: Inscription Type Selection ── */
-function renderInscriptionTypeStep(product, stepNum) {
-  if (!product.engraving_available) return '';
-  var required     = product.engraving_required || false;
-  var optionalSpan = required ? '' : '<span class="optional-label"> — 任意</span>';
-  var availTypes   = getAvailableTypes(product);
-
-  var typeBtns = '';
-  if (!required) {
-    typeBtns += '<button class="inscription-type-btn selected" data-type="none" aria-pressed="true">'
-      + '<span class="inscription-type-icon">—</span><span>刻印なし</span></button>';
+  // 既存データ復元
+  var saved = window.CieloCart?.getMessageCard();
+  if (saved?.enabled) {
+    toggle.checked   = true;
+    fields.style.display = '';
+    if (toEl   && saved.to)      toEl.value   = saved.to;
+    if (msgEl  && saved.message) msgEl.value  = saved.message;
+    if (fromEl && saved.from)    fromEl.value = saved.from;
+    if (countEl) countEl.textContent = (saved.message || '').length + ' / 30';
   }
-  availTypes.forEach(function(k) {
-    var t = INSC_TYPES[k];
-    typeBtns += '<button class="inscription-type-btn" data-type="' + k + '" aria-pressed="false">'
-      + '<span class="inscription-type-icon">' + t.icon + '</span>'
-      + '<span>' + t.label + '</span></button>';
-  });
 
-  return '<div class="config-step" id="inscriptionTypeStep">'
-    + '<div class="config-step-header">'
-    + '<span class="config-step-num">STEP ' + stepNum + '</span>'
-    + '<span class="config-step-label">個人刻印' + optionalSpan + '</span>'
-    + '</div>'
-    + '<div class="inscription-types" id="inscriptionTypes" role="group" aria-label="刻印タイプを選択">' + typeBtns + '</div>'
-    + '</div>';
-}
-
-/* ── STEP: Inscription Input (hidden until type chosen) ── */
-function renderInscriptionInputStep(product, stepNum) {
-  if (!product.engraving_available) return '';
-  return '<div class="config-step" id="inscriptionInputStep" style="display:none">'
-    + '<div class="config-step-header">'
-    + '<span class="config-step-num">STEP ' + stepNum + '</span>'
-    + '<span class="config-step-label" id="inscriptionInputStepLabel">刻印内容を入力</span>'
-    + '</div>'
-    + '<div class="inscription-input-area" id="inscriptionInputArea"></div>'
-    + '<div class="inscription-preview" id="inscriptionPreview" style="display:none">'
-    + '<span class="inscription-preview-label">刻印内容の確認</span>'
-    + '<span class="inscription-preview-text" id="inscriptionPreviewText"></span>'
-    + '</div>'
-    + '</div>';
-}
-
-function initInscriptionInteractions(product) {
-  var typeBtns   = document.querySelectorAll('.inscription-type-btn');
-  var inputArea  = document.getElementById('inscriptionInputArea');
-  var inputStep  = document.getElementById('inscriptionInputStep');
-  var inputLabel = document.getElementById('inscriptionInputStepLabel');
-  var preview    = document.getElementById('inscriptionPreview');
-  var previewTxt = document.getElementById('inscriptionPreviewText');
-  if (!typeBtns.length || !inputArea) return;
-  var maxLen     = product.engraving_max_chars || 20;
-  var availTypes = getAvailableTypes(product);
-
-  function showPreview(text) {
-    if (!preview || !previewTxt) return;
-    if (text && text.trim()) {
-      previewTxt.textContent = text;
-      preview.style.display = 'flex';
-    } else {
-      preview.style.display = 'none';
+  function syncToCart() {
+    if (!window.CieloCart) return;
+    if (!toggle.checked) {
+      window.CieloCart.setMessageCard(null);
+      return;
     }
-  }
-
-  function selectType(type) {
-    typeBtns.forEach(function(b) {
-      var sel = b.dataset.type === type;
-      b.classList.toggle('selected', sel);
-      b.setAttribute('aria-pressed', sel ? 'true' : 'false');
+    window.CieloCart.setMessageCard({
+      enabled: true,
+      to:      (toEl   ? toEl.value.trim()   : ''),
+      message: (msgEl  ? msgEl.value.trim()  : ''),
+      from:    (fromEl ? fromEl.value.trim() : ''),
     });
-    configState.engravingType = (type === 'none' || type === '') ? null : type;
-    configState.engravingText = null;
-    showPreview(null);
-
-    if (type === 'none' || type === '') {
-      if (inputStep) inputStep.style.display = 'none';
-      inputArea.innerHTML = '';
-      updateCTAState();
-      return;
-    }
-
-    if (inputStep) inputStep.style.display = '';
-    if (inputLabel) inputLabel.textContent = INSC_INPUT_LABELS[type] || 'Your Inscription';
-
-    if (type === 'date') {
-      inputArea.innerHTML =
-        '<p class="inscription-helper">' + INSC_TYPES.date.helper + '</p>'
-        + '<div class="inscription-date-wrap">'
-        + '<input type="date" id="inscDateInput" class="inscription-date-input" aria-label="日付を入力">'
-        + '<span class="inscription-date-format">YYYY.MM.DD 形式で刻印されます</span>'
-        + '</div>';
-      var dateInp = document.getElementById('inscDateInput');
-      if (dateInp) dateInp.addEventListener('change', function(e) {
-        var val = e.target.value ? e.target.value.replace(/-/g, '.') : null;
-        configState.engravingText = val;
-        showPreview(val);
-        updateCTAState();
-      });
-      updateCTAState();
-      return;
-    }
-
-    var def  = INSC_TYPES[type] || {};
-    var ph   = def.ph    || '';
-    var help = def.helper || '';
-    inputArea.innerHTML =
-      '<p class="inscription-helper">' + help + '</p>'
-      + '<div class="inscription-text-wrap">'
-      + '<input type="text" id="inscTextInput" class="inscription-text-input" maxlength="' + maxLen + '" placeholder="' + ph + '" aria-label="刻印内容" autocomplete="off" spellcheck="false">'
-      + '<span class="inscription-char-count" id="inscCharCount" aria-live="polite">0 / ' + maxLen + '</span>'
-      + '</div>';
-
-    var textInp = document.getElementById('inscTextInput');
-    var countEl  = document.getElementById('inscCharCount');
-    if (textInp) {
-      textInp.addEventListener('input', function() {
-        var raw = textInp.value;
-        var len = raw.length;
-        countEl.textContent = len + ' / ' + maxLen;
-        countEl.classList.toggle('near-limit', len >= Math.floor(maxLen * 0.8));
-        var stored = raw.trim() || null;
-        configState.engravingText = stored;
-        showPreview(stored);
-        updateCTAState();
-      });
-      textInp.focus();
-    }
-    updateCTAState();
   }
 
-  if (product.engraving_required && availTypes.length) {
-    selectType(availTypes[0]);
-  } else {
-    selectType('none');
-  }
-
-  typeBtns.forEach(function(btn) {
-    btn.addEventListener('click', function() { selectType(btn.dataset.type); });
+  toggle.addEventListener('change', function() {
+    fields.style.display = toggle.checked ? '' : 'none';
+    syncToCart();
   });
+
+  if (msgEl && countEl) {
+    msgEl.addEventListener('input', function() {
+      countEl.textContent = msgEl.value.length + ' / 30';
+      countEl.style.color = msgEl.value.length >= 28 ? 'rgba(239,68,68,.7)' : '';
+      syncToCart();
+    });
+  }
+  if (toEl)   toEl.addEventListener('input',   syncToCart);
+  if (fromEl) fromEl.addEventListener('input',  syncToCart);
 }
 
-function validateInscription(product) {
-  if (!product.engraving_available) return true;
-  var type   = configState.engravingType;
-  var text   = configState.engravingText;
-  var maxLen = product.engraving_max_chars || 20;
+function validateMessageCard() {
+  var toggle = document.getElementById('messageCardToggle');
+  if (!toggle?.checked) return true;
 
-  if (product.engraving_required && !type) {
-    alert('刻印タイプを選択してください');
-    document.querySelector('.inscription-type-btn') && document.querySelector('.inscription-type-btn').focus();
+  var toEl   = document.getElementById('msgCardTo');
+  var msgEl  = document.getElementById('msgCardMessage');
+  var fromEl = document.getElementById('msgCardFrom');
+
+  if (!toEl?.value.trim()) {
+    alert('相手のお名前を入力してください');
+    toEl?.focus();
     return false;
   }
-  if (type && type !== 'none' && !text) {
-    if (product.engraving_required) {
-      alert('刻印内容を入力してください');
-      (document.getElementById('inscTextInput') || document.getElementById('inscDateInput')) &&
-        (document.getElementById('inscTextInput') || document.getElementById('inscDateInput')).focus();
-      return false;
-    }
+  if (!msgEl?.value.trim()) {
+    alert('メッセージを入力してください');
+    msgEl?.focus();
+    return false;
   }
-  if (text && text.length > maxLen) {
-    alert('刻印は' + maxLen + '文字以内で入力してください');
+  if (msgEl.value.trim().length > 30) {
+    alert('メッセージは30文字以内で入力してください');
+    msgEl?.focus();
+    return false;
+  }
+  if (!fromEl?.value.trim()) {
+    alert('贈る方のお名前を入力してください');
+    fromEl?.focus();
     return false;
   }
   return true;
@@ -807,24 +788,16 @@ function buildCartItem(product) {
   var thumb    = images.filter(function(i) { return i.is_thumbnail; })[0] || images[0];
   var imageUrl = thumb ? thumb.image_url : null;
 
-  // Preserve original case; only strip control chars / HTML
-  var engText = configState.engravingText || null;
-  if (engText) engText = engText.replace(/[\x00-\x1F\x7F]/g, '').replace(/<[^>]*>/g, '').trim() || null;
-
   return {
-    productId:           product.id,
-    productSlug:         product.slug,
-    productName:         product.name,
-    variantId:           configState.variantId    || null,
-    variantLabel:        configState.variantLabel || null,
-    color:               configState.color        || null,
-    unitPrice:           product.price + (configState.priceModifier || 0),
-    quantity:            1,
-    engravingType:       configState.engravingType || null,
-    engravingText:       engText,
-    inscriptionLocation: product.inscription_location || null,
-    supportsInscription: !!(product.engraving_available),
-    imageUrl:            imageUrl,
+    productId:    product.id,
+    productSlug:  product.slug,
+    productName:  product.name,
+    variantId:    configState.variantId    || null,
+    variantLabel: configState.variantLabel || null,
+    color:        configState.color        || null,
+    unitPrice:    product.price + (configState.priceModifier || 0),
+    quantity:     1,
+    imageUrl:     imageUrl,
   };
 }
 
@@ -843,11 +816,6 @@ function renderConfig(product, variants) {
     html += '<div class="config-color-info"><span class="color-info-label">カラー</span><span class="color-info-value">' + parsed.defaultColor.toUpperCase() + '</span></div>';
   }
   if (parsed.sizes.length) { html += renderSizeSection(parsed.sizes, stepNum++); }
-  if (product.engraving_available) {
-    html += renderInscriptionTypeStep(product, stepNum);
-    html += renderInscriptionInputStep(product, stepNum + 1);
-    stepNum += 2;
-  }
 
   container.innerHTML = html;
 
@@ -872,11 +840,8 @@ function renderConfig(product, variants) {
     });
   });
 
-  if (product.engraving_available) {
-    initInscriptionInteractions(product);
-  } else if (!parsed.sizes.length) {
-    updateCTAState();
-  }
+  if (!parsed.sizes.length) updateCTAState();
+  initMessageCard();
 }
 
 function initCTA(product) {
@@ -886,7 +851,7 @@ function initCTA(product) {
 
   addBtn.addEventListener('click', function() {
     if (addBtn.disabled) return;
-    if (!validateInscription(product)) return;
+    if (!validateMessageCard()) return;
     if (!window.CieloCart) { console.error('[CIELO] CieloCart not loaded'); return; }
 
     var item = buildCartItem(product);
@@ -902,7 +867,7 @@ function initCTA(product) {
 
   orderBtn.addEventListener('click', async function() {
     if (orderBtn.disabled) return;
-    if (!validateInscription(product)) return;
+    if (!validateMessageCard()) return;
     if (!window.CieloCart) { console.error('[CIELO] CieloCart not loaded'); return; }
 
     var item = buildCartItem(product);

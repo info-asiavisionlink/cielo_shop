@@ -23,34 +23,23 @@ function parseBody(req) {
   });
 }
 
-/* ── Engraving server-side validation ── */
-function validateEngraving(rawText, rawType, maxChars, engAvail, engRequired) {
-  // Non-engraving product: discard any client-sent engraving silently
-  if (!engAvail) return { type: null, text: null };
+/* ── Message Card server-side validation ── */
+function validateMessageCard(mc) {
+  if (!mc || !mc.enabled) return null;
 
-  const type = rawType || null;
-  if (!type || type === 'none') return { type: null, text: null };
+  const to      = (typeof mc.to      === 'string' ? mc.to.trim()      : '');
+  const message = (typeof mc.message === 'string' ? mc.message.trim() : '');
+  const from    = (typeof mc.from    === 'string' ? mc.from.trim()    : '');
 
-  // Validate type value (personal_mark は旧データ後方互換で残す)
-  const VALID_TYPES = ['initials', 'name', 'date', 'short_message', 'personal_mark'];
-  if (!VALID_TYPES.includes(type)) {
-    throw new Error('不正な刻印タイプです');
-  }
+  // Strip control chars + HTML
+  const clean = s => s.replace(/[\x00-\x1F\x7F]/g, '').replace(/<[^>]*>/g, '').trim();
 
-  let text = typeof rawText === 'string' ? rawText.trim() : '';
-  // Strip control chars + HTML tags
-  text = text.replace(/[\x00-\x1F\x7F]/g, '').replace(/<[^>]*>/g, '').trim();
+  if (!clean(to))      throw new Error('相手のお名前を入力してください');
+  if (!clean(message)) throw new Error('メッセージを入力してください');
+  if (clean(message).length > 30) throw new Error('メッセージは30文字以内で入力してください');
+  if (!clean(from))    throw new Error('贈る方のお名前を入力してください');
 
-  if (engRequired && !text) {
-    throw new Error('刻印内容を入力してください');
-  }
-
-  const limit = Math.min(maxChars || 20, 50);
-  if (text.length > limit) {
-    throw new Error(`刻印は${limit}文字以内で入力してください`);
-  }
-
-  return { type, text: text || null };
+  return { to: clean(to), message: clean(message), from: clean(from) };
 }
 
 module.exports = async function handler(req, res) {
@@ -62,7 +51,7 @@ module.exports = async function handler(req, res) {
   try { body = await parseBody(req); }
   catch { return res.status(400).json({ error: 'リクエストの形式が不正です' }); }
 
-  const { items } = body;
+  const { items, messageCard: rawMsgCard } = body;
 
   // ── Input validation
   if (!Array.isArray(items) || items.length === 0 || items.length > 20) {
@@ -77,6 +66,11 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: '不正なアイテムです' });
     }
   }
+
+  // ── Message Card validation
+  let msgCard = null;
+  try { msgCard = validateMessageCard(rawMsgCard); }
+  catch (e) { return res.status(400).json({ error: e.message }); }
 
   const supabase = getSupabase();
   const stripe   = getStripe();
@@ -101,24 +95,6 @@ module.exports = async function handler(req, res) {
     const thumbnail = product.product_images?.find(i => i.is_thumbnail)?.image_url || null;
     const images    = thumbnail ? [thumbnail] : [];
 
-    // ── Engraving validation (server-side)
-    let engravingType = null;
-    let engravingText = null;
-    const engAvail    = product.engraving_available ?? false;
-    const engRequired = product.engraving_required  ?? false;
-    const maxChars    = product.engraving_max_chars  ?? 20;
-
-    try {
-      const eng = validateEngraving(
-        item.engravingText, item.engravingType,
-        maxChars, engAvail, engRequired
-      );
-      engravingType = eng.type;
-      engravingText = eng.text;
-    } catch (e) {
-      return res.status(400).json({ error: e.message });
-    }
-
     // ── Variant validation (optional; some products have no variants)
     let unitAmount = product.price;
 
@@ -135,11 +111,9 @@ module.exports = async function handler(req, res) {
       if (variant.product_id !== item.productId) {
         return res.status(400).json({ error: '不正なバリアントです' });
       }
-      // OEM運用のため在庫チェックなし
       unitAmount = product.price + (variant.price_modifier || 0);
     }
 
-    // Build product name for Stripe line item
     const lineItemName = item.variantId
       ? `${product.name} — ${(await supabase.from('product_variants').select('label').eq('id', item.variantId).single()).data?.label || ''}`
       : product.name;
@@ -147,31 +121,31 @@ module.exports = async function handler(req, res) {
     lineItems.push({
       price_data: {
         currency:     'jpy',
-        product_data: {
-          name:   lineItemName,
-          images,
-          metadata: {
-            engraving_type: engravingType || '',
-            engraving_text: engravingText || '',
-          },
-        },
-        unit_amount: unitAmount,
+        product_data: { name: lineItemName, images },
+        unit_amount:  unitAmount,
       },
       quantity: item.quantity,
     });
 
     validatedItems.push({
-      p:  item.productId,
-      v:  item.variantId || '',
-      q:  item.quantity,
-      et: engravingType  || '',
-      e:  engravingText  || '',
-      il: item.inscriptionLocation || '',
+      p: item.productId,
+      v: item.variantId || '',
+      q: item.quantity,
     });
   }
 
   // ── Stripe Checkout Session
   const baseUrl = process.env.BASE_URL || `https://${req.headers.host}`;
+
+  // Build metadata (500文字制限対応)
+  const metadata = {
+    itemsJson: JSON.stringify(validatedItems),
+  };
+  if (msgCard) {
+    metadata.mc_to      = msgCard.to.slice(0, 50);
+    metadata.mc_message = msgCard.message.slice(0, 30);
+    metadata.mc_from    = msgCard.from.slice(0, 50);
+  }
 
   let session;
   try {
@@ -181,14 +155,11 @@ module.exports = async function handler(req, res) {
       mode:                         'payment',
       success_url:                  `${baseUrl}/success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:                   `${baseUrl}/index.html`,
-      metadata: {
-        // Compact format to stay within 500-char limit
-        itemsJson: JSON.stringify(validatedItems),
-      },
-      billing_address_collection:  'required',
-      shipping_address_collection: { allowed_countries: ['JP'] },
-      phone_number_collection:     { enabled: true },
-      locale:                      'ja',
+      metadata,
+      billing_address_collection:   'required',
+      shipping_address_collection:  { allowed_countries: ['JP'] },
+      phone_number_collection:      { enabled: true },
+      locale:                       'ja',
     });
   } catch (err) {
     console.error('[CIELO] Stripe session create error:', err.message);

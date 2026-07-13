@@ -5,26 +5,33 @@
 
    Cart Item:
    {
-     cartItemId:    string  — productId::variantId::engravingText (identity key)
-     productId:     string
-     productSlug:   string
-     productName:   string
-     variantId:     string | null
-     variantLabel:  string | null  — size label (e.g. "M", "40cm")
-     color:         string | null  — product color info
-     unitPrice:     number         — JPY, validated server-side on checkout
-     quantity:      number
-     engravingType: 'personal_mark'|'date'|'short_message'|null
-     engravingText: string | null
-     imageUrl:      string | null
+     cartItemId:   string  — productId::variantId (identity key)
+     productId:    string
+     productSlug:  string
+     productName:  string
+     variantId:    string | null
+     variantLabel: string | null  — size label (e.g. "M", "40cm")
+     color:        string | null  — product color info
+     unitPrice:    number         — JPY, validated server-side on checkout
+     quantity:     number
+     imageUrl:     string | null
+   }
+
+   Message Card (order-level, stored separately):
+   {
+     enabled:  boolean
+     to:       string  — 相手のお名前
+     message:  string  — メッセージ（最大30文字）
+     from:     string  — 贈る方のお名前
    }
    ============================================================ */
 
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cielo_cart_v2';
-  const MAX_QTY     = 99;
+  const STORAGE_KEY      = 'cielo_cart_v2';
+  const MSG_CARD_KEY     = 'cielo_message_card';
+  const MAX_QTY          = 99;
 
   /* ── storage ── */
   function read() {
@@ -38,16 +45,11 @@
   }
 
   /* ── cart item identity ──
-     Two items are the same if they share the same product+variant+engraving.
-     Different sizes or different inscriptions = different items.
+     Two items are the same if they share the same product+variant.
+     Different sizes = different items.
   ── */
-  function makeId(productId, variantId, engravingType, engravingText) {
-    return [
-      productId       || '',
-      variantId       || 'no-variant',
-      engravingType   || 'none',
-      (engravingText  || '').trim(),
-    ].join('::');
+  function makeId(productId, variantId) {
+    return [productId || '', variantId || 'no-variant'].join('::');
   }
 
   /* ── public API ── */
@@ -63,7 +65,7 @@
 
   function addToCart(item) {
     const cart   = read();
-    const cid    = makeId(item.productId, item.variantId, item.engravingType, item.engravingText);
+    const cid    = makeId(item.productId, item.variantId);
     const exists = cart.find(i => i.cartItemId === cid);
 
     if (exists) {
@@ -95,7 +97,30 @@
 
   function clearCart() {
     write([]);
+    clearMessageCard();
   }
 
-  window.CieloCart = { getCart, getCount, getTotal, addToCart, updateQuantity, removeFromCart, clearCart };
+  /* ── Message Card (order-level) ── */
+  function getMessageCard() {
+    try { return JSON.parse(localStorage.getItem(MSG_CARD_KEY) || 'null'); }
+    catch { return null; }
+  }
+
+  function setMessageCard(data) {
+    if (!data || !data.enabled) {
+      localStorage.removeItem(MSG_CARD_KEY);
+    } else {
+      localStorage.setItem(MSG_CARD_KEY, JSON.stringify(data));
+    }
+  }
+
+  function clearMessageCard() {
+    localStorage.removeItem(MSG_CARD_KEY);
+  }
+
+  window.CieloCart = {
+    getCart, getCount, getTotal,
+    addToCart, updateQuantity, removeFromCart, clearCart,
+    getMessageCard, setMessageCard, clearMessageCard,
+  };
 })();

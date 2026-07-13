@@ -16,7 +16,6 @@ function buildOrderConfirmationHtml({ customerName, orderId, items, total }) {
     <tr>
       <td style="padding:9px 0;font-size:13px;color:#f0f4ff;border-bottom:1px solid rgba(240,244,255,0.06);">
         ${item.productName}${item.variantLabel ? ` <span style="color:rgba(240,244,255,0.45);font-size:12px;">/ ${item.variantLabel}</span>` : ''}
-        ${item.engravingText ? `<br><span style="color:rgba(201,168,110,0.7);font-size:11px;">刻印: ${item.engravingText}</span>` : ''}
       </td>
       <td style="padding:9px 0;font-size:13px;color:rgba(240,244,255,0.6);text-align:center;border-bottom:1px solid rgba(240,244,255,0.06);">× ${item.quantity}</td>
       <td style="padding:9px 0;font-size:13px;color:#f0f4ff;text-align:right;border-bottom:1px solid rgba(240,244,255,0.06);">¥${item.subtotal.toLocaleString('ja-JP')}</td>
@@ -41,13 +40,13 @@ function buildOrderConfirmationHtml({ customerName, orderId, items, total }) {
 
       <tr><td style="padding-bottom:20px;font-size:14px;color:rgba(240,244,255,0.7);line-height:1.9;">
         ${customerName ? `${customerName} 様、` : ''}この度はご注文いただきありがとうございます。<br>
-        これより、刻印・最終仕上げ・登録・パッケージングを一点ずつ行います。
+        これより、最終仕上げ・パッケージングを一点ずつ行います。
       </td></tr>
 
       <tr><td style="padding:16px 18px 20px;background:rgba(200,169,110,0.04);border:1px solid rgba(200,169,110,0.15);border-radius:4px;margin-bottom:24px;">
         <p style="margin:0 0 8px 0;font-size:9px;font-weight:700;letter-spacing:0.18em;color:rgba(200,169,110,0.6);text-transform:uppercase;">Preparation Time</p>
         <p style="margin:0 0 6px 0;font-size:16px;font-weight:300;color:#f0f4ff;letter-spacing:0.04em;">約 1〜4 週間</p>
-        <p style="margin:0;font-size:11px;color:rgba(240,244,255,0.4);line-height:1.7;">商品・刻印内容によって異なります。発送完了時に追跡番号をご連絡します。</p>
+        <p style="margin:0;font-size:11px;color:rgba(240,244,255,0.4);line-height:1.7;">発送完了時に追跡番号をご連絡します。</p>
       </td></tr>
 
       <tr><td style="height:20px;"></td></tr>
@@ -127,20 +126,20 @@ function getRawBody(req) {
 async function handleCheckoutCompleted(session) {
   const supabase = getSupabase();
 
-  const { itemsJson } = session.metadata || {};
+  const { itemsJson, mc_to, mc_message, mc_from } = session.metadata || {};
   let items = [];
   try {
     const raw = itemsJson ? JSON.parse(itemsJson) : [];
-    // Support both compact format {p,v,q,et,e} and legacy format {productId,variantId,...}
     items = raw.map(i => ({
-      productId:           i.p  || i.productId  || null,
-      variantId:           i.v  || i.variantId  || null,
-      quantity:            i.q  || i.quantity   || 1,
-      engravingType:       i.et || i.engravingType || null,
-      engraving:           i.e  || i.engraving  || null,
-      inscriptionLocation: i.il || i.inscriptionLocation || null,
+      productId: i.p || i.productId || null,
+      variantId: i.v || i.variantId || null,
+      quantity:  i.q || i.quantity  || 1,
     }));
   } catch { console.error('[CIELO Webhook] itemsJson parse error'); return; }
+
+  const msgCardTo      = mc_to      || null;
+  const msgCardMessage = mc_message || null;
+  const msgCardFrom    = mc_from    || null;
 
   const customerEmail = session.customer_details?.email || null;
   const customerName  = session.customer_details?.name  || null;
@@ -193,9 +192,12 @@ async function handleCheckoutCompleted(session) {
       tax:                      session.total_details?.amount_tax ?? 0,
       total:                    session.amount_total,
       currency:                 session.currency,
-      shipping_address:         shippingAddress,   // JSONB { line1, line2, city, state, postal_code, country }
-      shipping_name:            shippingName,       // 受取人氏名
-      shipping_phone:           customerPhone,      // 電話番号
+      shipping_address:         shippingAddress,
+      shipping_name:            shippingName,
+      shipping_phone:           customerPhone,
+      message_card_to:          msgCardTo,
+      message_card_message:     msgCardMessage,
+      message_card_from:        msgCardFrom,
     })
     .select('id')
     .single();
@@ -213,7 +215,7 @@ async function handleCheckoutCompleted(session) {
     if (item.variantId) {
       const { data: variant, error: variantError } = await supabase
         .from('product_variants')
-        .select('id, product_id, label, sku, price_modifier, products(name, slug, price, inscription_location)')
+        .select('id, product_id, label, sku, price_modifier, products(name, slug, price)')
         .eq('id', item.variantId)
         .single();
       if (variantError || !variant) {
@@ -228,7 +230,7 @@ async function handleCheckoutCompleted(session) {
     } else if (item.productId) {
       const { data: product } = await supabase
         .from('products')
-        .select('name, slug, price, inscription_location')
+        .select('name, slug, price')
         .eq('id', item.productId)
         .single();
       prod      = product;
@@ -237,11 +239,6 @@ async function handleCheckoutCompleted(session) {
       console.error('[CIELO Webhook] no productId or variantId in item');
       continue;
     }
-
-    const engravingText = (typeof item.engraving === 'string' && item.engraving.trim())
-      ? item.engraving.trim() : null;
-    const engravingType = (item.engravingType && item.engravingType !== 'none')
-      ? item.engravingType : null;
 
     const variant = item._variant || null;
 
@@ -257,9 +254,6 @@ async function handleCheckoutCompleted(session) {
         unit_price:    unitPrice,
         quantity:      item.quantity,
         subtotal:      unitPrice * item.quantity,
-        engraving_type:       engravingType,
-        engraving_text:       engravingText,
-        inscription_location: prod?.inscription_location || item.inscriptionLocation || null,
       });
 
     if (itemError) {
@@ -269,12 +263,11 @@ async function handleCheckoutCompleted(session) {
     // OEM運用のため在庫減算なし
 
     emailItems.push({
-      productName:   prod?.name             || '',
-      variantLabel:  variant?.label         || '',
-      engravingText: engravingText          || null,
-      quantity:      item.quantity,
-      unitPrice:     unitPrice,
-      subtotal:      unitPrice * item.quantity,
+      productName:  prod?.name     || '',
+      variantLabel: variant?.label || '',
+      quantity:     item.quantity,
+      unitPrice,
+      subtotal:     unitPrice * item.quantity,
     });
   }
 
